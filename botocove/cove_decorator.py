@@ -1,14 +1,13 @@
-import asyncio
 import functools
 import logging
 from concurrent import futures
-from functools import partial
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, TypedDict
 
 import boto3
 from boto3.session import Session
 from botocore.config import Config
 from botocore.exceptions import ClientError
+from tqdm import tqdm
 
 from botocove.cove_session import CoveSession
 
@@ -71,16 +70,7 @@ class CoveRunner(object):
         logger.debug(f"accounts targeted are {self.target_accounts}")
 
         # Get sessions in all targeted accounts
-        self.sessions = asyncio.run(
-            _get_account_sessions(
-                self.org_client,
-                self.sts_client,
-                self.role_to_assume,
-                self.role_session_name,
-                self.target_accounts,
-                self.org_master,
-            )
-        )
+        self.sessions = self._get_all_sessions()
 
         self.valid_sessions = [
             session for session in self.sessions if session.assume_role_success is True
@@ -90,18 +80,54 @@ class CoveRunner(object):
 
         self.invalid_sessions = self._get_invalid_cove_sessions()
 
+    def _get_all_sessions(self) -> List[CoveSession]:
+        sessions = []
+        with futures.ThreadPoolExecutor() as executor:
+            for result in tqdm(
+                executor.map(self._cove_session_factory, self.target_accounts)
+            ):
+                sessions.append(result)
+        return sessions
+
+    def _cove_session_factory(self, account_id) -> CoveSession:
+        role_arn = f"arn:aws:iam::{account_id}:role/{self.role_to_assume}"
+        if self.org_master:
+            try:
+                account_details = self.org_client.describe_account(
+                    AccountId=account_id
+                )["Account"]
+            except ClientError:
+                logger.exception(f"Failed to call describe_account for {account_id}")
+                account_details = {
+                    "Id": account_id,
+                    "RoleSessionName": self.role_session_name,
+                }
+
+        else:
+            account_details = {
+                "Id": account_id,
+                "RoleSessionName": self.role_session_name,
+            }
+        cove_session = CoveSession(account_details)
+        try:
+            logger.debug(f"Attempting to assume {role_arn}")
+            creds = self.sts_client.assume_role(
+                RoleArn=role_arn, RoleSessionName=self.role_session_name
+            )["Credentials"]
+            cove_session.initialize_boto_session(
+                aws_access_key_id=creds["AccessKeyId"],
+                aws_secret_access_key=creds["SecretAccessKey"],
+                aws_session_token=creds["SessionToken"],
+            )
+        except Exception as e:
+            cove_session.store_exception(e)
+
+        return cove_session
+
     def run_cove(self) -> CoveOutput:
         self.get_cove_sessions()
         # Run decorated func with all valid sessions
-        results, exceptions = asyncio.run(
-            _async_boto3_call(
-                self.valid_sessions,
-                self.raise_exception,
-                self.cove_wrapped_func,
-                *self.func_args,
-                **self.func_kwargs,
-            )
-        )
+        results, exceptions = self._async_boto3_call()
         return CoveOutput(
             Results=results,
             Exceptions=exceptions,
@@ -183,123 +209,38 @@ class CoveRunner(object):
         target_accounts = active_accounts - accounts_to_ignore
         return target_accounts
 
-
-# TODO boto3 types - s/Any/mypy_boto3 types
-
-
-def _get_cove_session(
-    org_client: Any,
-    sts_client: Any,
-    account_id: str,
-    rolename: str,
-    role_session_name: str,
-    org_master: bool,
-) -> CoveSession:
-    role_arn = f"arn:aws:iam::{account_id}:role/{rolename}"
-    if org_master:
+    def wrap_func(
+        self,
+        account_session: CoveSession,
+    ) -> Dict[str, Any]:
+        # Wrapper capturing exceptions and formatting results
         try:
-            account_details = org_client.describe_account(AccountId=account_id)[
-                "Account"
-            ]
-        except ClientError:
-            logger.exception(f"Failed to call describe_account for {account_id}")
-            account_details = {
-                "Id": account_id,
-                "RoleSessionName": role_session_name,
-            }
-
-    else:
-        account_details = {"Id": account_id, "RoleSessionName": role_session_name}
-    cove_session = CoveSession(account_details)
-    try:
-        logger.debug(f"Attempting to assume {role_arn}")
-        creds = sts_client.assume_role(
-            RoleArn=role_arn, RoleSessionName=role_session_name
-        )["Credentials"]
-        cove_session.initialize_boto_session(
-            aws_access_key_id=creds["AccessKeyId"],
-            aws_secret_access_key=creds["SecretAccessKey"],
-            aws_session_token=creds["SessionToken"],
-        )
-    except Exception as e:
-        cove_session.store_exception(e)
-
-    return cove_session
-
-
-async def _get_account_sessions(
-    org_client: Any,
-    sts_client: Any,
-    rolename: str,
-    role_session_name: str,
-    accounts: Set[str],
-    org_master: bool,
-) -> List[CoveSession]:
-    with futures.ThreadPoolExecutor() as executor:
-        loop = asyncio.get_running_loop()
-        tasks = [
-            loop.run_in_executor(
-                executor,
-                _get_cove_session,
-                org_client,
-                sts_client,
-                account_id,
-                rolename,
-                role_session_name,
-                org_master,
+            result = self.cove_wrapped_func(
+                account_session, *self.func_args, **self.func_kwargs
             )
-            for account_id in accounts
+            return account_session.format_cove_result(result)
+        except Exception as e:
+            if self.raise_exception is True:
+                account_session.store_exception(e)
+                logger.exception(account_session.format_cove_error())
+                raise
+            else:
+                account_session.store_exception(e)
+                return account_session.format_cove_error()
+
+    def _async_boto3_call(
+        self,
+    ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+        completed = []
+        with futures.ThreadPoolExecutor() as executor:
+            for result in executor.map(self.wrap_func, self.valid_sessions):
+                completed.append(result)
+
+        successful_results = [
+            result for result in completed if not result.get("ExceptionDetails")
         ]
-    sessions = await asyncio.gather(*tasks)
-    return sessions
-
-
-def wrap_func(
-    func: Callable,
-    raise_exception: bool,
-    account_session: CoveSession,
-    *args: Any,
-    **kwargs: Any,
-) -> Dict[str, Any]:
-    # Wrapper capturing exceptions and formatting results
-    try:
-        result = func(account_session, *args, **kwargs)
-        return account_session.format_cove_result(result)
-    except Exception as e:
-        if raise_exception is True:
-            account_session.store_exception(e)
-            logger.exception(account_session.format_cove_error())
-            raise
-        else:
-            account_session.store_exception(e)
-            return account_session.format_cove_error()
-
-
-async def _async_boto3_call(
-    valid_sessions: List[CoveSession],
-    raise_exception: bool,
-    func: Callable,
-    *args: Any,
-    **kwargs: Any,
-) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
-    with futures.ThreadPoolExecutor() as executor:
-        loop = asyncio.get_running_loop()
-        tasks = [
-            loop.run_in_executor(
-                executor,
-                partial(
-                    wrap_func, func, raise_exception, account_session, *args, **kwargs
-                ),
-            )
-            for account_session in valid_sessions
-        ]
-
-    completed = await asyncio.gather(*tasks)
-    successful_results = [
-        result for result in completed if not result.get("ExceptionDetails")
-    ]
-    exceptions = [result for result in completed if result.get("ExceptionDetails")]
-    return successful_results, exceptions
+        exceptions = [result for result in completed if result.get("ExceptionDetails")]
+        return successful_results, exceptions
 
 
 def cove(
