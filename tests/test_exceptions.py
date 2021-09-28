@@ -40,10 +40,7 @@ def test_no_account_id_exception(mock_boto3_session) -> None:
 
     with pytest.raises(
         ValueError,
-        match=(
-            "There are no eligible account ids to run "
-            "decorated func simple_func against"
-        ),
+        match="There are no eligible account ids to run decorated func against",
     ):
         simple_func()
 

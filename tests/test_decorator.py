@@ -55,7 +55,7 @@ def test_empty_target_ids(mock_boto3_session) -> None:
 
     with pytest.raises(
         ValueError,
-        match="There are no eligible account ids to run decorated func simple_func against",  # noqa: E501
+        match="There are no eligible account ids to run decorated func against",  # noqa: E501
     ):
         simple_func()
 

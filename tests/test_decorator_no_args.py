@@ -8,7 +8,7 @@ from botocove.cove_decorator import cove
 
 @pytest.fixture()
 def patch_boto3_client(mocker) -> MagicMock:
-    mock_boto3 = mocker.patch("botocove.cove_decorator.boto3")
+    mock_boto3 = mocker.patch("botocove.cove_sessions.boto3")
     list_accounts_result = {"Accounts": [{"Id": "12345689012", "Status": "ACTIVE"}]}
     mock_boto3.client.return_value.get_paginator.return_value.paginate.return_value.build_full_result.return_value = (  # noqa E501
         list_accounts_result
