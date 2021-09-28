@@ -1,8 +1,7 @@
-from typing import Any, Dict, List
-
+from typing import Any, Dict, List, Union
+from botocove.cove_types import IncompleteDescribeAccount, DescrbeAccountResponse
 from boto3.session import Session
-from botocore.exceptions import ClientError
-
+from mypy_boto3_organizations.type_defs import AccountTypeDef
 
 class CoveSession(Session):
     """Enriches a boto3 Session with account data from Master account if run from
@@ -11,13 +10,10 @@ class CoveSession(Session):
     """
 
     assume_role_success: bool = False
-    session_information: Dict[str, Any] = {}
+    session_information: Union[IncompleteDescribeAccount, DescrbeAccountResponse]
     stored_exceptions: List[Exception] = []
 
-    def __init__(self, account_details: Dict[str, str]) -> None:
-        ignore_fields = ["Arn", "JoinedMethod", "JoinedTimestamp"]
-        for key in ignore_fields:
-            account_details.pop(key, "Key not found")
+    def __init__(self, account_details: Union[IncompleteDescribeAccount, DescrbeAccountResponse]) -> None:
         self.session_information = account_details
 
     def __repr__(self) -> str:
@@ -30,7 +26,7 @@ class CoveSession(Session):
         self.assume_role_success = True
         self.session_information["AssumeRoleSuccess"] = self.assume_role_success
 
-    def store_exception(self, exception: ClientError) -> None:
+    def store_exception(self, exception: Exception) -> None:
         if self.stored_exceptions:
             self.stored_exceptions.append(exception)
         else:

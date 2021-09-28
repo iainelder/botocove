@@ -12,6 +12,7 @@ keywords = ["AWS", "organizations", "AWS organizations", "boto3"]
 python = "^3.8"
 boto3 = "^1.16.12"
 tqdm = "^4.62.3"
+boto3-stubs = {extras = ["sts", "organizations"], version = "^1.18.50"}
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.1.2"
