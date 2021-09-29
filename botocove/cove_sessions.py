@@ -1,18 +1,18 @@
 import logging
 from concurrent import futures
-from typing import Any, Dict, List, Optional, Set, Tuple, Literal, Union
-from botocove.cove_types import IncompleteDescribeAccount, DescrbeAccountResponse
+from typing import Any, Dict, List, Literal, Optional, Set, Tuple, Union
 
 import boto3
 from boto3.session import Session
 from botocore.config import Config
 from botocore.exceptions import ClientError
-from mypy_boto3_organizations.type_defs import AccountTypeDef
-from tqdm import tqdm
-from mypy_boto3_sts.client import STSClient
 from mypy_boto3_organizations.client import OrganizationsClient
+from mypy_boto3_organizations.type_defs import AccountTypeDef
+from mypy_boto3_sts.client import STSClient
+from tqdm import tqdm
 
 from botocove.cove_session import CoveSession
+from botocove.cove_types import AccountDetails
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +32,9 @@ class CoveSessions(object):
     ) -> None:
 
         self.sts_client: STSClient = self._get_boto3_client("sts", assuming_session)
-        self.org_client: OrganizationsClient = self._get_boto3_client("organizations", assuming_session)
+        self.org_client: OrganizationsClient = self._get_boto3_client(
+            "organizations", assuming_session
+        )
 
         self.provided_ignore_ids = ignore_ids
         self.target_accounts = self._resolve_target_accounts(target_ids)
@@ -71,20 +73,21 @@ class CoveSessions(object):
 
     def _cove_session_factory(self, account_id: str) -> CoveSession:
         role_arn = f"arn:aws:iam::{account_id}:role/{self.role_to_assume}"
-        account_details: Union[AccountTypeDef, IncompleteDescribeAccount]
+        account_details: AccountDetails = {"Id": account_id}
         if self.org_master:
             try:
-                 DescrbeAccountResponse(dict(self.org_client.describe_account(
+                account_description: AccountTypeDef = self.org_client.describe_account(
                     AccountId=account_id
-                )["Account"]))
+                )["Account"]
+                account_details["Arn"] = account_description["Arn"]
+                account_details["Email"] = account_description["Email"]
+                account_details["Name"] = account_description["Name"]
+                account_details["Status"] = account_description["Status"]
             except ClientError:
                 logger.exception(f"Failed to call describe_account for {account_id}")
-                account_details = IncompleteDescribeAccount(Id=account_id, RoleSessionName=self.role_session_name)
-
-        else:
-            account_details = IncompleteDescribeAccount(Id=account_id, RoleSessionName=self.role_session_name)
 
         cove_session = CoveSession(account_details)
+
         try:
             logger.debug(f"Attempting to assume {role_arn}")
             creds = self.sts_client.assume_role(
@@ -119,11 +122,15 @@ class CoveSessions(object):
         return invalid_sessions
 
     def _get_boto3_client(
-        self, clientname: Union[Literal["organizations"], Literal["sts"]], assuming_session: Optional[Session]
+        self,
+        clientname: Union[Literal["organizations"], Literal["sts"]],
+        assuming_session: Optional[Session],
     ) -> Any:
         if assuming_session:
             logger.info(f"Using provided Boto3 session {assuming_session}")
-            return assuming_session.client(service_name=clientname, config=Config(max_pool_connections=20))
+            return assuming_session.client(
+                service_name=clientname, config=Config(max_pool_connections=20)
+            )
         logger.info("No Boto3 session argument: using credential chain")
         return boto3.client(clientname, config=Config(max_pool_connections=20))
 

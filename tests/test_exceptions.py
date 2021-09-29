@@ -1,3 +1,4 @@
+from datetime import datetime
 from unittest.mock import MagicMock
 
 import pytest
@@ -19,8 +20,28 @@ def mock_boto3_session() -> MagicMock:
         list_accounts_result
     )
     describe_account_results = [
-        {"Account": {"Id": "123"}},
-        {"Account": {"Id": "456"}},
+        {
+            "Account": {
+                "Id": "123123123123",
+                "Arn": "hello-arn",
+                "Email": "email@address.com",
+                "Name": "an-account-name",
+                "Status": "ACTIVE",
+                "JoinedMethod": "CREATED",
+                "JoinedTimestamp": datetime(2015, 1, 1),
+            }
+        },
+        {
+            "Account": {
+                "Id": "456456456456",
+                "Arn": "hello-arn",
+                "Email": "email@address.com",
+                "Name": "an-account-name",
+                "Status": "ACTIVE",
+                "JoinedMethod": "CREATED",
+                "JoinedTimestamp": datetime(2015, 1, 1),
+            }
+        },
     ]
     mock_session.client.return_value.describe_account.side_effect = (
         describe_account_results
@@ -69,16 +90,19 @@ def test_handled_exception_in_wrapped_func(mock_boto3_session) -> None:
         return "hello"
 
     results = simple_func()
+    expected = [
+        {
+            "Id": "123",
+            "Arn": "hello-arn",
+            "Email": "email@address.com",
+            "Name": "an-account-name",
+            "Status": "ACTIVE",
+            "AssumeRoleSuccess": True,
+            "ExceptionDetails": Exception("oh no"),
+        }
+    ]
     # Compare repr of exceptions
-    assert repr(results["Exceptions"]) == repr(
-        [
-            {
-                "Id": "123",
-                "AssumeRoleSuccess": True,
-                "ExceptionDetails": [Exception("oh no")],
-            }
-        ]
-    )
+    assert repr(results["Exceptions"]) == repr(expected)
 
 
 def test_raised_exception_in_wrapped_func(mock_boto3_session) -> None:

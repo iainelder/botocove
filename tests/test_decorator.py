@@ -1,3 +1,4 @@
+from datetime import datetime
 from unittest.mock import MagicMock
 
 import pytest
@@ -18,8 +19,28 @@ def mock_boto3_session() -> MagicMock:
         list_accounts_result
     )
     describe_account_results = [
-        {"Account": {"Id": "123123123123"}},
-        {"Account": {"Id": "456456456456"}},
+        {
+            "Account": {
+                "Id": "123123123123",
+                "Arn": "hello-arn",
+                "Email": "email@address.com",
+                "Name": "an-account-name",
+                "Status": "ACTIVE",
+                "JoinedMethod": "CREATED",
+                "JoinedTimestamp": datetime(2015, 1, 1),
+            }
+        },
+        {
+            "Account": {
+                "Id": "456456456456",
+                "Arn": "hello-arn",
+                "Email": "email@address.com",
+                "Name": "an-account-name",
+                "Status": "ACTIVE",
+                "JoinedMethod": "CREATED",
+                "JoinedTimestamp": datetime(2015, 1, 1),
+            }
+        },
     ]
     mock_session.client.return_value.describe_account.side_effect = (
         describe_account_results
@@ -108,7 +129,17 @@ def test_decorated_simple_func_passed_args(mock_boto3_session) -> None:
         return arg1 + arg2 + arg3
 
     cove_output = simple_func(1, 2, 3)
-    expected = [{"Id": "123123123123", "AssumeRoleSuccess": True, "Result": 6}]
+    expected = [
+        {
+            "Id": "123123123123",
+            "Arn": "hello-arn",
+            "Email": "email@address.com",
+            "Name": "an-account-name",
+            "Status": "ACTIVE",
+            "AssumeRoleSuccess": True,
+            "Result": 6,
+        }
+    ]
     # Two simple_func calls == two mock AWS accounts
     assert cove_output["Results"] == expected
 

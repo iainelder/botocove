@@ -40,12 +40,13 @@ def test_session_result_formatter(patch_boto3_client) -> None:
     cove_output = simple_func("test-string")
     expected = [
         {
-            "AssumeRoleSuccess": True,
+            "Id": "12345689012",
+            "Arn": "hello-arn",
             "Email": "email@address.com",
-            "Id": "1234",
             "Name": "an-account-name",
-            "Result": "test-string",
             "Status": "ACTIVE",
+            "AssumeRoleSuccess": True,
+            "Result": "test-string",
         }
     ]
     assert cove_output["Results"] == expected
@@ -68,7 +69,6 @@ def test_session_result_error_handler(patch_boto3_client) -> None:
     expected = [
         {
             "Id": "12345689012",
-            "RoleSessionName": "OrganizationAccountAccessRole",
             "AssumeRoleSuccess": True,
             "Result": "test-string",
         }
