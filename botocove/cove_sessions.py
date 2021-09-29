@@ -168,13 +168,12 @@ class CoveSessions(object):
         return {acc["Id"] for acc in all_org_accounts if acc["Status"] == "ACTIVE"}
 
     def _build_account_ignore_list(self) -> Set[str]:
-        calling_account: Set[str] = {
+        accounts_to_ignore: Set[str] = {
             self.sts_client.get_caller_identity()["Account"]
-        }  # TODO we can do this smarter surely
+        }
         if self.provided_ignore_ids:
-            accounts_to_ignore = set(self.provided_ignore_ids) | calling_account
-        else:
-            accounts_to_ignore = calling_account
+            accounts_to_ignore.update(self.provided_ignore_ids)
+
         logger.info(f"{accounts_to_ignore=}")
         return accounts_to_ignore
 

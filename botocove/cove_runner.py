@@ -9,11 +9,6 @@ logger = logging.getLogger(__name__)
 
 
 class CoveRunner(object):
-
-    # """
-    # docs
-    # """
-
     def __init__(
         self,
         valid_sessions: List[CoveSession],
@@ -36,7 +31,7 @@ class CoveRunner(object):
             Exceptions=exceptions,
         )
 
-    def wrap_func(
+    def cove_exception_wrapper_func(
         self,
         account_session: CoveSession,
     ) -> Dict[str, Any]:
@@ -60,7 +55,7 @@ class CoveRunner(object):
     ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
         completed = []
         with futures.ThreadPoolExecutor() as executor:
-            for result in executor.map(self.wrap_func, self.sessions):
+            for result in executor.map(self.cove_exception_wrapper_func, self.sessions):
                 completed.append(result)
 
         successful_results = [
