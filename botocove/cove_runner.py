@@ -4,6 +4,7 @@ from typing import Any, Callable, Dict, List, Tuple
 
 from botocove.cove_session import CoveSession
 from botocove.cove_types import CoveFunctionOutput
+from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 
@@ -53,10 +54,15 @@ class CoveRunner(object):
     def _async_boto3_call(
         self,
     ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
-        completed = []
-        with futures.ThreadPoolExecutor() as executor:
-            for result in executor.map(self.cove_exception_wrapper_func, self.sessions):
-                completed.append(result)
+        with futures.ThreadPoolExecutor(max_workers=20) as executor:
+            completed = list(
+                tqdm(
+                    executor.map(self.cove_exception_wrapper_func, self.sessions),
+                    total=len(self.sessions),
+                    desc="Executing function",
+                    colour="#ff69b4",  # hotpink
+                )
+            )
 
         successful_results = [
             result for result in completed if not result.get("ExceptionDetails")

@@ -55,12 +55,15 @@ class CoveSessions(object):
             f"{self.provided_ignore_ids=}"
         )
 
-        sessions = []
-        with futures.ThreadPoolExecutor() as executor:
-            for result in tqdm(
-                executor.map(self._cove_session_factory, self.target_accounts)
-            ):
-                sessions.append(result)
+        with futures.ThreadPoolExecutor(max_workers=20) as executor:
+            sessions = list(
+                tqdm(
+                    executor.map(self._cove_session_factory, self.target_accounts),
+                    total=len(self.target_accounts),
+                    desc="Assuming sessions",
+                    colour="#39ff14",  # neon green
+                )
+            )
 
         self.valid_sessions = [
             session for session in sessions if session.assume_role_success is True
