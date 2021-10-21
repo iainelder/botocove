@@ -3,12 +3,13 @@ from typing import Tuple
 from unittest.mock import MagicMock
 
 import pytest
+from pytest_mock import MockerFixture
 
-from botocove.cove_decorator import cove
+from botocove import CoveSession, cove
 
 
 @pytest.fixture()
-def patch_boto3_client(mocker) -> MagicMock:
+def patch_boto3_client(mocker: MockerFixture) -> MagicMock:
     mock_boto3 = mocker.patch("botocove.cove_sessions.boto3")
     list_accounts_result = {"Accounts": [{"Id": "12345689012", "Status": "ACTIVE"}]}
     mock_boto3.client.return_value.get_paginator.return_value.paginate.return_value.build_full_result.return_value = (  # noqa E501
@@ -33,9 +34,9 @@ def patch_boto3_client(mocker) -> MagicMock:
     return mock_boto3
 
 
-def test_decorated_simple_func(patch_boto3_client) -> None:
+def test_decorated_simple_func(patch_boto3_client: MagicMock) -> None:
     @cove
-    def simple_func(session) -> str:
+    def simple_func(session: CoveSession) -> str:
         return "hello"
 
     cove_output = simple_func()
@@ -53,9 +54,9 @@ def test_decorated_simple_func(patch_boto3_client) -> None:
     assert cove_output["Results"] == expected
 
 
-def test_decorated_func_passed_arg(patch_boto3_client) -> None:
+def test_decorated_func_passed_arg(patch_boto3_client: MagicMock) -> None:
     @cove
-    def simple_func(session, output) -> str:
+    def simple_func(session: CoveSession, output: str) -> str:
         return output
 
     cove_output = simple_func("blue")
@@ -73,9 +74,11 @@ def test_decorated_func_passed_arg(patch_boto3_client) -> None:
     assert cove_output["Results"] == expected
 
 
-def test_decorated_func_passed_arg_and_kwarg(patch_boto3_client) -> None:
+def test_decorated_func_passed_arg_and_kwarg(patch_boto3_client: MagicMock) -> None:
     @cove
-    def simple_func(session, time, colour, shape) -> Tuple[str, str, str]:
+    def simple_func(
+        session: CoveSession, time: str, colour: str, shape: str
+    ) -> Tuple[str, str, str]:
         return colour, shape, time
 
     cove_output = simple_func("11:11", shape="circle", colour="blue")["Results"]

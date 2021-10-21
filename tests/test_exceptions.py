@@ -5,6 +5,7 @@ import pytest
 from botocore.exceptions import ClientError
 
 from botocove import cove
+from botocove.cove_session import CoveSession
 
 
 @pytest.fixture()
@@ -50,13 +51,13 @@ def mock_boto3_session() -> MagicMock:
     return mock_session
 
 
-def test_no_account_id_exception(mock_boto3_session) -> None:
+def test_no_account_id_exception(mock_boto3_session: MagicMock) -> None:
     @cove(
         assuming_session=mock_boto3_session,
         target_ids=["456456456456"],
         ignore_ids=["456456456456"],
     )
-    def simple_func(session) -> str:
+    def simple_func(session: CoveSession) -> str:
         return "hello"
 
     with pytest.raises(
@@ -66,14 +67,14 @@ def test_no_account_id_exception(mock_boto3_session) -> None:
         simple_func()
 
 
-def test_no_valid_sessions_exception(mock_boto3_session) -> None:
+def test_no_valid_sessions_exception(mock_boto3_session: MagicMock) -> None:
     mock_boto3_session.client.return_value.assume_role.side_effect = [
         ClientError({"Error": {}}, "error1"),
         ClientError({"Error": {}}, "error2"),
     ]
 
     @cove(assuming_session=mock_boto3_session, target_ids=["123", "456"])
-    def simple_func(session) -> str:
+    def simple_func(session: CoveSession) -> str:
         return "hello"
 
     with pytest.raises(
@@ -83,11 +84,10 @@ def test_no_valid_sessions_exception(mock_boto3_session) -> None:
         simple_func()
 
 
-def test_handled_exception_in_wrapped_func(mock_boto3_session) -> None:
+def test_handled_exception_in_wrapped_func(mock_boto3_session: MagicMock) -> None:
     @cove(assuming_session=mock_boto3_session, target_ids=["123"])
-    def simple_func(session) -> str:
+    def simple_func(session: CoveSession) -> None:
         raise Exception("oh no")
-        return "hello"
 
     results = simple_func()
     expected = [
@@ -105,22 +105,22 @@ def test_handled_exception_in_wrapped_func(mock_boto3_session) -> None:
     assert repr(results["Exceptions"]) == repr(expected)
 
 
-def test_raised_exception_in_wrapped_func(mock_boto3_session) -> None:
+def test_raised_exception_in_wrapped_func(mock_boto3_session: MagicMock) -> None:
     @cove(assuming_session=mock_boto3_session, target_ids=["123"], raise_exception=True)
-    def simple_func(session) -> None:
+    def simple_func(session: CoveSession) -> None:
         raise Exception("oh no")
 
     with pytest.raises(Exception, match="oh no"):
         simple_func()
 
 
-def test_malformed_ignore_ids(mock_boto3_session) -> None:
+def test_malformed_ignore_ids(mock_boto3_session: MagicMock) -> None:
     @cove(
         assuming_session=mock_boto3_session,
         target_ids=["456456456456"],
         ignore_ids=["cat"],
     )
-    def simple_func(session) -> str:
+    def simple_func(session: CoveSession) -> str:
         return "hello"
 
     with pytest.raises(

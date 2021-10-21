@@ -2,9 +2,10 @@ import logging
 from concurrent import futures
 from typing import Any, Callable, Dict, List, Tuple
 
+from tqdm import tqdm
+
 from botocove.cove_session import CoveSession
 from botocove.cove_types import CoveFunctionOutput
-from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 

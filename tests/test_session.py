@@ -3,12 +3,13 @@ from unittest.mock import MagicMock
 
 import pytest
 from botocore.exceptions import ClientError
+from pytest_mock import MockerFixture
 
-from botocove.cove_decorator import cove
+from botocove import CoveSession, cove
 
 
 @pytest.fixture()
-def patch_boto3_client(mocker) -> MagicMock:
+def patch_boto3_client(mocker: MockerFixture) -> MagicMock:
     mock_boto3 = mocker.patch("botocove.cove_sessions.boto3")
     list_accounts_result = {"Accounts": [{"Id": "12345689012", "Status": "ACTIVE"}]}
     mock_boto3.client.return_value.get_paginator.return_value.paginate.return_value.build_full_result.return_value = (  # noqa E501
@@ -31,9 +32,9 @@ def patch_boto3_client(mocker) -> MagicMock:
     return mock_boto3
 
 
-def test_session_result_formatter(patch_boto3_client) -> None:
+def test_session_result_formatter(patch_boto3_client: MagicMock) -> None:
     @cove
-    def simple_func(session, a_string):
+    def simple_func(session: CoveSession, a_string: str) -> str:
         return a_string
 
     # Only one account for simplicity
@@ -52,7 +53,7 @@ def test_session_result_formatter(patch_boto3_client) -> None:
     assert cove_output["Results"] == expected
 
 
-def test_session_result_error_handler(patch_boto3_client) -> None:
+def test_session_result_error_handler(patch_boto3_client: MagicMock) -> None:
     # Raise an exception instead of an expected response from boto3
     patch_boto3_client.client.return_value.describe_account.side_effect = MagicMock(
         side_effect=ClientError(
@@ -61,7 +62,7 @@ def test_session_result_error_handler(patch_boto3_client) -> None:
     )
 
     @cove
-    def simple_func(session, a_string):
+    def simple_func(session: CoveSession, a_string: str) -> str:
         return a_string
 
     # Only one account for simplicity

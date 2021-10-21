@@ -1,9 +1,10 @@
 from datetime import datetime
+from typing import Union
 from unittest.mock import MagicMock
 
 import pytest
 
-from botocove import cove
+from botocove import CoveSession, cove
 
 
 @pytest.fixture()
@@ -48,9 +49,9 @@ def mock_boto3_session() -> MagicMock:
     return mock_session
 
 
-def test_decorated_simple_func(mock_boto3_session) -> None:
+def test_decorated_simple_func(mock_boto3_session: MagicMock) -> None:
     @cove(assuming_session=mock_boto3_session)
-    def simple_func(session) -> str:
+    def simple_func(session: CoveSession) -> str:
         return "hello"
 
     cove_output = simple_func()
@@ -58,9 +59,9 @@ def test_decorated_simple_func(mock_boto3_session) -> None:
     assert len(cove_output["Results"]) == 2
 
 
-def test_target_ids(mock_boto3_session) -> None:
+def test_target_ids(mock_boto3_session: MagicMock) -> None:
     @cove(assuming_session=mock_boto3_session, target_ids=["1"])
-    def simple_func(session) -> str:
+    def simple_func(session: CoveSession) -> str:
         return "hello"
 
     cove_output = simple_func()
@@ -69,9 +70,9 @@ def test_target_ids(mock_boto3_session) -> None:
     assert len(cove_output["Results"]) == 1
 
 
-def test_empty_target_ids(mock_boto3_session) -> None:
+def test_empty_target_ids(mock_boto3_session: MagicMock) -> None:
     @cove(assuming_session=mock_boto3_session, target_ids=[])
-    def simple_func(session) -> str:
+    def simple_func(session: CoveSession) -> str:
         return "hello"
 
     with pytest.raises(
@@ -81,9 +82,9 @@ def test_empty_target_ids(mock_boto3_session) -> None:
         simple_func()
 
 
-def test_ignore_ids(mock_boto3_session) -> None:
+def test_ignore_ids(mock_boto3_session: MagicMock) -> None:
     @cove(assuming_session=mock_boto3_session, ignore_ids=["123123123123"])
-    def simple_func(session) -> str:
+    def simple_func(session: CoveSession) -> str:
         return "hello"
 
     cove_output = simple_func()
@@ -92,13 +93,13 @@ def test_ignore_ids(mock_boto3_session) -> None:
     assert len(cove_output["Results"]) == 1
 
 
-def test_target_and_ignore_ids(mock_boto3_session) -> None:
+def test_target_and_ignore_ids(mock_boto3_session: MagicMock) -> None:
     @cove(
         assuming_session=mock_boto3_session,
         target_ids=["123123123123", "456456456456"],
         ignore_ids=["456456456456"],
     )
-    def simple_func(session) -> str:
+    def simple_func(session: CoveSession) -> str:
         return "hello"
 
     cove_output = simple_func()
@@ -107,13 +108,13 @@ def test_target_and_ignore_ids(mock_boto3_session) -> None:
     assert len(cove_output["Results"]) == 1
 
 
-def test_empty_ignore_ids(mock_boto3_session) -> None:
+def test_empty_ignore_ids(mock_boto3_session: MagicMock) -> None:
     @cove(
         assuming_session=mock_boto3_session,
         target_ids=["123123123123", "456456456456"],
         ignore_ids=[],
     )
-    def simple_func(session) -> str:
+    def simple_func(session: CoveSession) -> str:
         return "hello"
 
     cove_output = simple_func()
@@ -123,9 +124,9 @@ def test_empty_ignore_ids(mock_boto3_session) -> None:
     assert len(cove_output["Results"]) == 2
 
 
-def test_decorated_simple_func_passed_args(mock_boto3_session) -> None:
+def test_decorated_simple_func_passed_args(mock_boto3_session: MagicMock) -> None:
     @cove(assuming_session=mock_boto3_session, ignore_ids=["456456456456"])
-    def simple_func(session, arg1: int, arg2: int, arg3: int) -> int:
+    def simple_func(session: CoveSession, arg1: int, arg2: int, arg3: int) -> int:
         return arg1 + arg2 + arg3
 
     cove_output = simple_func(1, 2, 3)
@@ -144,7 +145,9 @@ def test_decorated_simple_func_passed_args(mock_boto3_session) -> None:
     assert cove_output["Results"] == expected
 
 
-def test_decorated_simple_func_passed_session_name(mock_boto3_session) -> None:
+def test_decorated_simple_func_passed_session_name(
+    mock_boto3_session: MagicMock,
+) -> None:
     session_name = "testSessionName"
 
     @cove(
@@ -152,7 +155,7 @@ def test_decorated_simple_func_passed_session_name(mock_boto3_session) -> None:
         role_session_name=session_name,
         org_master=False,
     )
-    def simple_func(session):
+    def simple_func(session: CoveSession) -> Union[str, bool, Exception]:
         return session.session_information["RoleSessionName"]
 
     cove_output = simple_func()

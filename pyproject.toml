@@ -69,8 +69,6 @@ pylint = ["+*"]
 [tool.flakehell.exceptions."tests/"]
 flake8-bandit = ["+*", "-S322", "-S101"]
 
-
-
 [tool.black]
 line_length=88
 
