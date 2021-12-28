@@ -1,7 +1,7 @@
 import functools
 import logging
 from dataclasses import asdict
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Type
 
 from boto3.session import Session
 
@@ -27,6 +27,7 @@ def cove(
     assuming_session: Optional[Session] = None,
     raise_exception: bool = False,
     org_master: bool = True,
+    runner_impl: Type[CoveRunner] = CoveRunner
 ) -> Callable:
     def decorator(func: Callable[..., R]) -> Callable[..., CoveOutput]:
         @functools.wraps(func)
@@ -40,7 +41,7 @@ def cove(
                 assuming_session=assuming_session,
             ).get_cove_sessions()
 
-            runner = CoveRunner(
+            runner = runner_impl(
                 valid_sessions=valid_sessions,
                 func=func,
                 raise_exception=raise_exception,
@@ -52,9 +53,9 @@ def cove(
 
             # Rewrite dataclasses into untyped dicts to retain current functionality
             return CoveOutput(
-                FailedAssumeRole=[dataclass_converter(f) for f in invalid_sessions],
-                Results=[dataclass_converter(r) for r in output["Results"]],
-                Exceptions=[dataclass_converter(e) for e in output["Exceptions"]],
+                FailedAssumeRole=(dataclass_converter(f) for f in invalid_sessions),
+                Results=(dataclass_converter(r) for r in output["Results"]),
+                Exceptions=(dataclass_converter(e) for e in output["Exceptions"]),
             )
 
         return wrapper

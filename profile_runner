@@ -1,0 +1,27 @@
+#!/bin/bash
+
+set -euo pipefail
+
+runner_name="${1}"
+member_account_id="${2}"
+repetitions="${3}"
+filename="${4}"
+
+poetry run python demo.py "${runner_name}" "${member_account_id}" "${repetitions}" &
+cove_pid=$!
+
+> topdump
+
+while kill -0 $cove_pid &> /dev/null; do
+  # suppress exit code because last call always fails:
+  # "signal 11 (SEGV) was caught by top"
+  top -b -n 1 -p $cove_pid >> topdump || true
+done
+
+cat topdump \
+| grep -oP "${cove_pid}.*" \
+| tr -s ' ' ',' \
+| cat \
+    <(printf 'Process_ID,User_Name,Priority,Nice_Value,Virtual_Memory_Size,Resident_Memory_size,Shared_Memory_Size,Process_Status,CPU_Usage,Memory_Usage,CPU_Time,Command_Name\n') \
+    - \
+> "${filename}"

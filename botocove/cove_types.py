@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Dict, Generic, List, Optional, TypedDict, TypeVar
+from typing import Any, Dict, Generic, Iterable, List, Optional, TypedDict, TypeVar
 
 from mypy_boto3_organizations.literals import AccountStatusType
 
@@ -28,6 +28,6 @@ class CoveFunctionOutput(TypedDict):
 
 
 class CoveOutput(TypedDict):
-    Results: List[Dict[str, Any]]
-    Exceptions: List[Dict[str, Any]]
-    FailedAssumeRole: List[Dict[str, Any]]
+    Results: Iterable[Dict[str, Any]]
+    Exceptions: Iterable[Dict[str, Any]]
+    FailedAssumeRole: Iterable[Dict[str, Any]]

@@ -1,0 +1,10 @@
+#!/bin/bash
+
+set -euo pipefail
+
+member_account_id="${1}"
+repetitions="${2}"
+
+for runner_name in MultiThreadedListCoveRunner MonoThreadedListCoveRunner; do
+  ./profile_runner "${runner_name}" "${member_account_id}" "${repetitions}" "${runner_name}.csv"
+done
