@@ -18,7 +18,7 @@ def main() -> None:
 
     target_ids = [member_account_id] * int(repetitions)
 
-    runner_impl = load_runner(runner_name)
+    runner_impl = resolve_runner(runner_name)
 
     all_results = cove(get_iam_users, target_ids=target_ids, runner_impl=runner_impl)()
 
@@ -27,16 +27,19 @@ def main() -> None:
 
     for e in all_results["Exceptions"]:
         print(e)
-        
+
     for f in all_results["FailedAssumeRole"]:
         print(f)
 
 
-def load_runner(class_name: str) -> Type[CoveRunner]:
-    for c in ALL_RUNNERS:
-        if class_name == c.__name__:
-            return c
-    raise ValueError(f"{class_name} is not a runner class")
+def resolve_runner(runner_name: str) -> Type[CoveRunner]:
+    try:
+        return next(runner for runner in ALL_RUNNERS if runner_name == runner.__name__)
+    except StopIteration:
+        raise ValueError(
+            f"{runner_name} is not a runner class. "
+            f"Runner classes are {', '.join(runner.__name__ for runner in ALL_RUNNERS)}."
+        )
 
 
 if __name__ == "__main__":
