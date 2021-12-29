@@ -40,7 +40,11 @@ def convert_top_cpu_time_to_seconds(cpu_time: str) -> float:
 
 
 # TODO: units tests for the k part
+# FIXME: type isn't always str
+# FIXME: find a more pythonic way to collect this data!
 def convert_top_mem_to_bytes(resident_memory_size: str) -> int:
+    if type(resident_memory_size) == int:
+        return resident_memory_size
     if re.match(r"\d+", resident_memory_size):
         resident_memory_size = f"{resident_memory_size}k"
     return parse_size(resident_memory_size)
