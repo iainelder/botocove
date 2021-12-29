@@ -1,21 +1,34 @@
-# type: ignore
-
-from glob import glob
 import os
 import sys
+from datetime import datetime, timedelta
+from glob import glob
+from typing import no_type_check
 
-import matplotlib.pyplot as plt
-import pandas as pd
+# There are no type hints or stubs for these modules.
+import matplotlib.pyplot as plt  # type: ignore
+import pandas as pd  # type: ignore
 
-output_dir = sys.argv[1]
 
-os.chdir(output_dir)
+@no_type_check
+def main() -> None:
+    output_dir = sys.argv[1]
 
-profiles = glob("*CoveRunner.csv")
+    os.chdir(output_dir)
 
-ax = None
-for p in profiles:
-    df = pd.read_csv(p)
-    ax = df.plot(ax=ax, x="CPU_Time", y="Resident_Memory_Size", label=p)
+    profiles = glob("*CoveRunner.csv")
 
-plt.show()
+    ax = None
+    for p in profiles:
+        df = pd.read_csv(p)
+        ax = df.plot(ax=ax, x="CPU_Time", y="Resident_Memory_Size", label=p)
+
+    plt.show()
+
+
+def cpu_timedelta(cpu_time: str) -> timedelta:
+    dt = datetime.strptime(cpu_time, "%M:%S.%f")
+    return timedelta(minutes=dt.minute, seconds=dt.second, microseconds=dt.microsecond)
+
+
+if __name__ == "__main__":
+    main()
