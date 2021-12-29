@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Dict, Generic, Iterable, List, Optional, TypedDict, TypeVar
+from typing import Any, Dict, Generic, Iterable, Optional, TypedDict, TypeVar
 
 from mypy_boto3_organizations.literals import AccountStatusType
 

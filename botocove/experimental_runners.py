@@ -1,5 +1,5 @@
-from itertools import filterfalse, tee
 import sys
+from itertools import filterfalse, tee
 from typing import Callable, Tuple
 
 from botocove.cove_runner import CoveRunner, tqdm
@@ -34,8 +34,9 @@ class MonoThreadedGenCoveRunner(CoveRunner):
     def _async_boto3_call(
         self,
     ) -> Tuple[CoveResults, CoveResults]:
-
-        def partition(pred: Callable[[CoveSessionInformation], bool], iterable: CoveResults) -> Tuple[CoveResults, CoveResults]:
+        def partition(
+            pred: Callable[[CoveSessionInformation], bool], iterable: CoveResults
+        ) -> Tuple[CoveResults, CoveResults]:
             "Use a predicate to partition entries into false entries and true entries."
             # partition(is_odd, range(10)) --> 0 2 4 6 8   and  1 3 5 7 9
             t1, t2 = tee(iterable)
@@ -48,7 +49,9 @@ class MonoThreadedGenCoveRunner(CoveRunner):
             colour="#ff69b4",  # hotpink
         )
 
-        successful_results, exceptions = partition(lambda r: bool(r.ExceptionDetails), completed)
+        successful_results, exceptions = partition(
+            lambda r: bool(r.ExceptionDetails), completed
+        )
 
         return successful_results, exceptions
 
@@ -56,7 +59,7 @@ class MonoThreadedGenCoveRunner(CoveRunner):
 ALL_RUNNERS = {
     MultiThreadedListCoveRunner,
     MonoThreadedListCoveRunner,
-    MonoThreadedGenCoveRunner
+    MonoThreadedGenCoveRunner,
 }
 
 
