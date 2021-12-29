@@ -10,15 +10,15 @@ filename="${4}"
 poetry run python demo.py "${runner_name}" "${member_account_id}" "${repetitions}" &
 cove_pid=$!
 
-> topdump
+topdump="$(mktemp --tmpdir topdump.XXX)"
 
 while kill -0 $cove_pid &> /dev/null; do
   # suppress exit code because last call always fails:
   # "signal 11 (SEGV) was caught by top"
-  top -b -n 1 -p $cove_pid >> topdump || true
+  top -b -n 1 -p $cove_pid >> "${topdump}" || true
 done
 
-cat topdump \
+cat "${topdump}" \
 | grep -oP "${cove_pid}.*" \
 | tr -s ' ' ',' \
 | cat \
