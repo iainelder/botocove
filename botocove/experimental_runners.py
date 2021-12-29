@@ -1,3 +1,4 @@
+import sys
 from typing import Tuple
 
 from botocove.cove_runner import CoveRunner, tqdm
@@ -28,7 +29,23 @@ class MonoThreadedListCoveRunner(CoveRunner):
         return successful_results, exceptions
 
 
-ALL_RUNNERS = [
+ALL_RUNNERS = {
     MultiThreadedListCoveRunner,
     MonoThreadedListCoveRunner,
-]
+}
+
+
+def main():
+    option = sys.argv[1]
+    {
+        "--list-runners": list_runners
+    }[option]()
+
+
+def list_runners():
+    for runner_name in (runner.__name__ for runner in ALL_RUNNERS):
+        print(runner_name)
+
+
+if __name__ == "__main__":
+    main()
