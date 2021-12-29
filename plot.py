@@ -20,6 +20,7 @@ def main() -> None:
     ax = None
     for p in profiles:
         df = pd.read_csv(p)
+        df["CPU_Time"] = df["CPU_Time"].apply(cpu_timedelta)
         ax = df.plot(ax=ax, x="CPU_Time", y="Resident_Memory_Size", label=p)
 
     plt.show()
