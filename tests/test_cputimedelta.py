@@ -6,13 +6,15 @@ from plot import cpu_timedelta
 
 
 def test_empty() -> None:
-    with pytest.raises(ValueError, match="%H:%S.%f"):
-        cpu_timedelta("")
+    instr = ""
+    with pytest.raises(ValueError, match=f"time data '{instr}' does not match format '%M:%S\.%f'"):
+        cpu_timedelta(instr)
 
 
 def test_junk() -> None:
-    with pytest.raises(ValueError, match="%H:%S.%f"):
-        cpu_timedelta("notatime")
+    instr = "notatime"
+    with pytest.raises(ValueError, match=f"time data '{instr}' does not match format '%M:%S\.%f'"):
+        cpu_timedelta(instr)
 
 
 def test_zero() -> None:
