@@ -22,6 +22,6 @@ cat "${topdump}" \
 | grep -oP "${cove_pid}.*" \
 | tr -s ' ' ',' \
 | cat \
-    <(printf 'Process_ID,User_Name,Priority,Nice_Value,Virtual_Memory_Size,Resident_Memory_size,Shared_Memory_Size,Process_Status,CPU_Usage,Memory_Usage,CPU_Time,Command_Name\n') \
+    <(printf 'Process_ID,User_Name,Priority,Nice_Value,Virtual_Memory_Size,Resident_Memory_Size,Shared_Memory_Size,Process_Status,CPU_Usage,Memory_Usage,CPU_Time,Command_Name\n') \
     - \
 > "${filename}"

@@ -16,6 +16,6 @@ profiles = glob("*CoveRunner.csv")
 ax = None
 for p in profiles:
     df = pd.read_csv(p)
-    ax = df.plot(ax=ax, x="CPU_Time", y="Resident_Memory_size", label=p)
+    ax = df.plot(ax=ax, x="CPU_Time", y="Resident_Memory_Size", label=p)
 
 plt.show()
