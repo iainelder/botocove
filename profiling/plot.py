@@ -1,3 +1,4 @@
+import re
 import sys
 from datetime import datetime, timedelta
 from glob import iglob
@@ -8,7 +9,7 @@ from typing import no_type_check, Iterable
 # There are no type hints or stubs for these modules.
 import matplotlib.pyplot as plt  # type: ignore
 import pandas as pd  # type: ignore
-
+from humanfriendly import parse_size
 
 @no_type_check
 def main() -> None:
@@ -20,6 +21,7 @@ def main() -> None:
     for p in profiles:
         df = pd.read_csv(p)
         df["CPU_Time"] = df["CPU_Time"].apply(convert_top_cpu_time_to_seconds)
+        df["Resident_Memory_Size"] = df["Resident_Memory_Size"].apply(convert_top_mem_to_bytes)
         ax = df.plot(ax=ax, x="CPU_Time", y="Resident_Memory_Size", label=p)
 
     plt.show()
@@ -35,6 +37,13 @@ def convert_top_cpu_time_to_seconds(cpu_time: str) -> float:
     stamp = datetime.strptime(cpu_time, "%M:%S.%f")
     delta = timedelta(minutes=stamp.minute, seconds=stamp.second, microseconds=stamp.microsecond)
     return delta.total_seconds()
+
+
+# TODO: units tests for the k part
+def convert_top_mem_to_bytes(resident_memory_size: str) -> int:
+    if re.match(r"\d+", resident_memory_size):
+        resident_memory_size = f"{resident_memory_size}k"
+    return parse_size(resident_memory_size)
 
 
 if __name__ == "__main__":
