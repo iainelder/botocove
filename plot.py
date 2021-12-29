@@ -19,7 +19,7 @@ def main() -> None:
     ax = None
     for p in profiles:
         df = pd.read_csv(p)
-        df["CPU_Time"] = df["CPU_Time"].apply(cpu_timedelta)
+        df["CPU_Time"] = df["CPU_Time"].apply(convert_top_cpu_time_to_seconds)
         ax = df.plot(ax=ax, x="CPU_Time", y="Resident_Memory_Size", label=p)
 
     plt.show()
@@ -30,9 +30,11 @@ def glob_in_dir(*, dir: str, expr: str) -> Iterable[str]:
     return iglob(str(Path(dir, expr)))
 
 
-def cpu_timedelta(cpu_time: str) -> timedelta:
-    dt = datetime.strptime(cpu_time, "%M:%S.%f")
-    return timedelta(minutes=dt.minute, seconds=dt.second, microseconds=dt.microsecond)
+def convert_top_cpu_time_to_seconds(cpu_time: str) -> float:
+    """Converts top's CPU_Time value to a float number of seconds."""
+    stamp = datetime.strptime(cpu_time, "%M:%S.%f")
+    delta = timedelta(minutes=stamp.minute, seconds=stamp.second, microseconds=stamp.microsecond)
+    return delta.total_seconds()
 
 
 if __name__ == "__main__":
