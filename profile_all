@@ -4,7 +4,9 @@ set -euo pipefail
 
 member_account_id="${1}"
 repetitions="${2}"
+output_dir="out"
 
-for runner_name in $(poetry run python -m botocove.experimental_runners --list-runners); do
-  ./profile_runner "${runner_name}" "${member_account_id}" "${repetitions}" "out/${runner_name}.csv"
-done
+mkdir --parents "${output_dir}"
+
+poetry run python -m botocove.experimental_runners --list-runners \
+| xargs -I {} ./profile_runner {} "${member_account_id}" "${repetitions}" "${output_dir}"/{}.csv
