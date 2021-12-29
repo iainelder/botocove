@@ -6,5 +6,5 @@ member_account_id="${1}"
 repetitions="${2}"
 
 for runner_name in $(poetry run python -m botocove.experimental_runners --list-runners); do
-  ./profile_runner "${runner_name}" "${member_account_id}" "${repetitions}" "${runner_name}.csv"
+  ./profile_runner "${runner_name}" "${member_account_id}" "${repetitions}" "out/${runner_name}.csv"
 done
