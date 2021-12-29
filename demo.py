@@ -42,7 +42,7 @@ def resolve_runner(runner_name: str) -> Type[CoveRunner]:
     try:
         return next(runner for runner in ALL_RUNNERS if runner_name == runner.__name__)
     except StopIteration:
-        class_list = ', '.join(runner.__name__ for runner in ALL_RUNNERS)
+        class_list = ", ".join(runner.__name__ for runner in ALL_RUNNERS)
         raise ValueError(
             f"{runner_name} is not a runner class. Runner classes are {class_list}."
         )

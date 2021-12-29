@@ -35,14 +35,12 @@ ALL_RUNNERS = {
 }
 
 
-def main():
+def main() -> None:
     option = sys.argv[1]
-    {
-        "--list-runners": list_runners
-    }[option]()
+    {"--list-runners": list_runners}[option]()
 
 
-def list_runners():
+def list_runners() -> None:
     for runner_name in (runner.__name__ for runner in ALL_RUNNERS):
         print(runner_name)
 
