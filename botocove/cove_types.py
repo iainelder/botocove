@@ -19,7 +19,7 @@ class CoveSessionInformation(Generic[R]):
     ExceptionDetails: Optional[Exception] = None
 
 
-CoveResults = List[CoveSessionInformation]
+CoveResults = Iterable[CoveSessionInformation]
 
 
 class CoveFunctionOutput(TypedDict):
