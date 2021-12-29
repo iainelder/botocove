@@ -1,13 +1,14 @@
 from typing import Tuple
+
 from botocove.cove_runner import CoveRunner, tqdm
 from botocove.cove_types import CoveResults
+
 
 class MultiThreadedListCoveRunner(CoveRunner):
     pass
 
 
 class MonoThreadedListCoveRunner(CoveRunner):
-
     def _async_boto3_call(
         self,
     ) -> Tuple[CoveResults, CoveResults]:
