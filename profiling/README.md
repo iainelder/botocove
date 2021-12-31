@@ -80,3 +80,9 @@ A demo of how to use GnuPlot.
 https://realpython.com/pandas-plot-python/
 
 https://stackoverflow.com/questions/13872533/plot-different-dataframes-in-the-same-figure
+
+## Results
+
+mem_50.png
+
+mem_300.png
