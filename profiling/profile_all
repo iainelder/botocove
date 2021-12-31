@@ -8,5 +8,5 @@ output_dir="out"
 
 mkdir --parents "${output_dir}"
 
-poetry run python -m botocove.experimental_runners --list-runners \
+poetry run python -m profiling.experimental_runners --list-runners \
 | xargs -I {} ./profile_runner {} "${member_account_id}" "${repetitions}" "${output_dir}"/{}.csv

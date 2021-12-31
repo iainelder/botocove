@@ -7,7 +7,7 @@ from mypy_boto3_iam.type_defs import ListUsersResponseTypeDef
 
 from botocove import cove
 from botocove.cove_runner import CoveRunner
-from botocove.experimental_runners import ALL_RUNNERS
+from profiling.experimental_runners import ALL_RUNNERS
 
 
 def get_iam_users(session: boto3.Session) -> ListUsersResponseTypeDef:
