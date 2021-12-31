@@ -20,7 +20,8 @@ poetry run profile_runner MonoThreadedGenCoveRunner 897617218731 2 ~/tmp/output.
 ```
 
 ```
-poetry run python plot.py
+poetry run python plot.py out
+xdg-open out/out.png
 ```
 
 ## Changes to the library
