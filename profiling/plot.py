@@ -24,7 +24,7 @@ def main() -> None:
         df["Resident_Memory_Size"] = df["Resident_Memory_Size"].apply(convert_top_mem_to_bytes)
         ax = df.plot(ax=ax, x="CPU_Time", y="Resident_Memory_Size", label=p)
 
-    plt.show()
+    ax.figure.savefig(Path(output_dir, f"{output_dir}.png"))
 
 
 # TODO: unit tests: mock dir structure? pytest temporary directories?
