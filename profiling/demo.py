@@ -8,7 +8,7 @@ from mypy_boto3_iam.type_defs import ListUsersResponseTypeDef
 from botocove import cove
 from botocove.cove_runner import CoveRunner
 from profiling.experimental_runners import ALL_RUNNERS
-
+from profiling.experimental_sessions import ListCoveSessions
 
 def get_iam_users(session: boto3.Session) -> ListUsersResponseTypeDef:
     iam: IAMClient = session.client("iam", region_name="eu-west-1")
@@ -26,7 +26,7 @@ def main() -> None:
 
     runner_impl = resolve_runner(runner_name)
 
-    all_results = cove(get_iam_users, target_ids=target_ids, runner_impl=runner_impl)()
+    all_results = cove(get_iam_users, target_ids=target_ids, runner_impl=runner_impl, sessions_impl=ListCoveSessions)()
 
     for r in all_results["Results"]:
         print(r)

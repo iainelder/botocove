@@ -27,12 +27,13 @@ def cove(
     assuming_session: Optional[Session] = None,
     raise_exception: bool = False,
     org_master: bool = True,
-    runner_impl: Type[CoveRunner] = CoveRunner
+    runner_impl: Type[CoveRunner] = CoveRunner,
+    sessions_impl: Type[CoveSessions] = CoveSessions
 ) -> Callable:
     def decorator(func: Callable[..., R]) -> Callable[..., CoveOutput]:
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> CoveOutput:
-            valid_sessions, invalid_sessions = CoveSessions(
+            valid_sessions, invalid_sessions = sessions_impl(
                 target_ids=target_ids,
                 ignore_ids=ignore_ids,
                 rolename=rolename,
