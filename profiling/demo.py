@@ -1,5 +1,9 @@
+import os
 import sys
-from typing import Type
+import time
+from typing import Any, Callable, List, Type
+from threading import Thread
+import multiprocessing as mp
 
 import boto3
 from mypy_boto3_iam import IAMClient
@@ -8,7 +12,11 @@ from mypy_boto3_iam.type_defs import ListUsersResponseTypeDef
 from botocove import cove
 from botocove.cove_runner import CoveRunner
 from profiling.experimental_runners import ALL_RUNNERS
-from profiling.experimental_sessions import ListCoveSessions
+
+import psutil
+
+import matplotlib.pyplot as plt
+
 
 def get_iam_users(session: boto3.Session) -> ListUsersResponseTypeDef:
     iam: IAMClient = session.client("iam", region_name="eu-west-1")
@@ -20,13 +28,39 @@ def get_iam_users(session: boto3.Session) -> ListUsersResponseTypeDef:
 
 def main() -> None:
 
-    runner_name, member_account_id, repetitions = sys.argv[1:4]
+    mp.set_start_method("spawn")
+
+    member_account_id, repetitions = sys.argv[1:3]
 
     target_ids = [member_account_id] * int(repetitions)
 
-    runner_impl = resolve_runner(runner_name)
+    memory_log = {}
 
-    all_results = cove(get_iam_users, target_ids=target_ids, runner_impl=runner_impl, sessions_impl=ListCoveSessions)()
+    for runner_impl in ALL_RUNNERS:
+
+        run_process_and_log_memory(
+            mp.Process(target=print_cove_results, name=runner_impl.__name__, args=(get_iam_users, target_ids, runner_impl)),
+            memory_log
+        )
+
+    for runner_name, profile in memory_log.items():
+        plt.plot(profile, label=runner_name)
+    
+    plt.legend()
+    plt.show()
+
+def run_process_and_log_memory(process: mp.Process, memory_log):
+    process.start()
+    memory_log[process.name] = []
+    while process.is_alive():
+        time.sleep(0.25)
+        rss = psutil.Process(process.pid).memory_info().rss
+        memory_log[process.name].append(rss)
+
+
+def print_cove_results(func: Callable[[boto3.Session], Any], target_ids: List[str], runner_impl: CoveRunner):
+
+    all_results = cove(get_iam_users, target_ids=target_ids, runner_impl=runner_impl)()
 
     for r in all_results["Results"]:
         print(r)

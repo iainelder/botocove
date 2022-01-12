@@ -2,26 +2,17 @@
 
 ## Usage
 
+Set management account profile and region.
 ```
 export AWS_PROFILE=sandbox-mgmt
 export AWS_DEFAULT_REGION=eu-west-1
-```
+
+Run demo.py to generate a plot of memory use by various runner implementations.
+
+The first argument is an AWS account to connect to. It must be a member of the management account. The second argument is the size of the organization to simulate. It will connect to the member account this many times.
 
 ```
-poetry run profile_all 897617218731 50
-```
-
-```
-poetry run profile_runner MultiThreadedListCoveRunner 897617218731 2 ~/tmp/output.csv
-```
-
-```
-poetry run profile_runner MonoThreadedGenCoveRunner 897617218731 2 ~/tmp/output.csv
-```
-
-```
-poetry run python plot.py out
-xdg-open out/out.png
+poetry run python demo.py 897617218731 50
 ```
 
 ## Changes to the library
@@ -50,8 +41,7 @@ It could be made backwards compatible by parameterizing the CoveSessions type (C
 The test harness consists of:
 
 1. A set of experimental runners
-2. A python program that executes a runner on a simulated organization of a given size
-3. 
+2. A python program that executes these runners on a simulated organization of a given size and plots the memory use of each one.
 
 Logging the memory of a running process is surprisingly complicated.
 
