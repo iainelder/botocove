@@ -32,21 +32,25 @@ def one_phase_cove(
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> CoveOutput:
 
-            targets = CoveSessions(
+            cove_sessions = CoveSessions(
                 target_ids=target_ids,
                 ignore_ids=ignore_ids,
                 rolename=rolename,
                 role_session_name=role_session_name,
                 assuming_session=assuming_session,
                 org_master=org_master,
-            )._resolve_target_accounts(target_ids)
+            )
+            
+            targets = cove_sessions._resolve_target_accounts(target_ids)
 
-            query_with_func = functools.partial(query, func)
+            session_factory = cove_sessions._cove_session_factory
+
+            curried_query = functools.partial(query, func, session_factory)
             
             with futures.ThreadPoolExecutor(max_workers=20) as executor:
                 results = list(
                     tqdm(
-                        executor.map(query_with_func, targets),
+                        executor.map(curried_query, targets),
                         total=len(targets),
                         desc="Querying organization",
                         colour="#39ff14",  # neon green
@@ -64,17 +68,8 @@ def one_phase_cove(
         return decorator(_func)
 
 
-def query(func, target):
+def query(func, session_factory, target):
     
-    session_factory = CoveSessions(
-        target_ids=None,
-        ignore_ids=None,
-        rolename=None,
-        role_session_name=None,
-        assuming_session=None,
-        org_master=False
-    )._cove_session_factory
-
     session = session_factory(target)
 
     if not session.assume_role_success:

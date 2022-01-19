@@ -4,8 +4,7 @@
 
     ```
     aws sso login --profile sandbox-mgmt
-    aws2-wrap --generate --profile sandbox-mgmt --configfile /dev/null --credentialsfile creds --outprofile default 
-    cat creds
+    aws2-wrap --generatestdout --profile sandbox-gmt --outprofile default
     ```
 
 * Log into any account with a VPC and launch an EC2 instance:
@@ -28,7 +27,8 @@
 * Test that you have admin access to the organization management account.
 
     ```
-    sudo apt install awscli
+    sudo apt update
+    sudo apt install -y awscli
     aws sts get-caller-identity
     ```
 
