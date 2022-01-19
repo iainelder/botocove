@@ -4,7 +4,7 @@
 
     ```
     aws sso login --profile sandbox-mgmt
-    aws2-wrap --generatestdout --profile sandbox-gmt --outprofile default
+    aws2-wrap --generatestdout --profile sandbox-mgmt --outprofile default
     ```
 
 * Log into any account with a VPC and launch an EC2 instance:
@@ -21,6 +21,7 @@
 * Paste the credentials into the instance config.
 
     ```
+    mkdir ~/.aws
     vim ~/.aws/credentials
     ```
 
