@@ -32,6 +32,8 @@ mypy = "*"
 pre-commit = "*"
 flakeheaven = "*"
 psutil = "^5.9.0"
+matplotlib = "^3.5.1"
+types-psutil = "^5.8.20"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

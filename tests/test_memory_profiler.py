@@ -56,6 +56,9 @@ def test_patched_host_account_allows_duplicate_account_ids(
         assert host.target_accounts == duplicate_target_ids  # type:ignore
 
 
+TIMING_ABSOLUTE_TOLERANCE = 0.05
+
+
 @pytest.fixture()
 def null_process() -> Process:
     return Process()
@@ -102,7 +105,7 @@ def test_null_process_has_single_log(null_process: Process) -> None:
 
 def test_first_process_timestamp_is_zero(null_process: Process) -> None:
     logs = run_process_and_log_memory(null_process)
-    assert isclose(logs[0].timestamp, 0.0, abs_tol=0.01)
+    assert isclose(logs[0].timestamp, 0.0, abs_tol=TIMING_ABSOLUTE_TOLERANCE)
 
 
 def test_raises_error_for_started_process(null_process: Process) -> None:
@@ -117,7 +120,7 @@ def test_process_logs_every_quarter_second(sleep_for_1_sec: Process) -> None:
     expected = [0.0, 0.25, 0.5, 0.75, 1.0]
 
     for log, et in zip(logs, expected):
-        assert isclose(log.timestamp, et, abs_tol=0.01)
+        assert isclose(log.timestamp, et, abs_tol=TIMING_ABSOLUTE_TOLERANCE)
 
 
 def test_stops_logging_when_process_exits(sleep_for_1_sec: Process) -> None:
