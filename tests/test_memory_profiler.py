@@ -5,58 +5,11 @@ from typing import List
 
 import pytest
 
-from botocove.cove_host_account import CoveHostAccount
+from profiling.memory_profiler import run_process_and_log_memory
 
-# FIXME: "module is but missing library stubs or py.typed marker  [import]"
-from profiling.memory_profiler import (  # type:ignore
-    allow_duplicate_target_ids,
-    run_process_and_log_memory,
-)
+pytestmark = pytest.mark.slow
 
-
-@pytest.fixture()
-def duplicate_target_ids() -> List[str]:
-    return ["111111111111"] * 2
-
-
-def test_unpatched_host_account_deduplicates_target_ids(
-    duplicate_target_ids: List[str],
-) -> None:
-    host = CoveHostAccount(
-        target_ids=duplicate_target_ids,
-        ignore_ids=None,
-        rolename=None,
-        role_session_name=None,
-        policy=None,
-        policy_arns=None,
-        assuming_session=None,
-        org_master=False,
-    )
-    assert len(host.target_accounts) == 1
-
-
-def test_patched_host_account_allows_duplicate_account_ids(
-    duplicate_target_ids: List[str],
-) -> None:
-    with allow_duplicate_target_ids():
-        host = CoveHostAccount(
-            target_ids=duplicate_target_ids,
-            ignore_ids=None,
-            rolename=None,
-            role_session_name=None,
-            policy=None,
-            policy_arns=None,
-            assuming_session=None,
-            org_master=False,
-        )
-
-        # Ignore a non-overlapping equality check between `Set[str]` and `List[str]`.
-        # Mypy doesn't see that the context manager changes the type of
-        # target_accounts to `List[str]`.
-        assert host.target_accounts == duplicate_target_ids  # type:ignore
-
-
-TIMING_ABSOLUTE_TOLERANCE = 0.05
+TIMING_ABSOLUTE_TOLERANCE = 0.01
 
 
 @pytest.fixture()
@@ -145,3 +98,17 @@ def test_logs_process_decreasing_memory(deallocate_to_zero: Process) -> None:
     assert len(logs) > 1
     for i in range(len(logs) - 1):
         assert logs[i].rss >= logs[i + 1].rss
+
+
+@pytest.mark.xfail(
+    reason="This function doesn't account for how long each loop takes.",
+    strict=True,
+)
+def test_drift() -> None:
+
+    expected = [ts / 4 for ts in range(0, 1 + 4 * 60)]
+    sleep_for_1_min = Process(target=lambda: sleep(60))
+    logs = run_process_and_log_memory(sleep_for_1_min)
+
+    for log, et in zip(logs, expected):
+        assert isclose(log.timestamp, et, abs_tol=TIMING_ABSOLUTE_TOLERANCE)
