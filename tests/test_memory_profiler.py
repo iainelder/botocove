@@ -100,6 +100,8 @@ def test_logs_process_decreasing_memory(deallocate_to_zero: Process) -> None:
         assert logs[i].rss >= logs[i + 1].rss
 
 
+# Read this thread for ideas on how to fix it.
+# The standard library's sched module might be a solution, but it's poorly documented.
 @pytest.mark.xfail(
     reason="This function doesn't account for how long each loop takes.",
     strict=True,

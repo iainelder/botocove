@@ -442,6 +442,17 @@ optional = false
 python-versions = ">=3.6"
 
 [[package]]
+name = "data-science-types"
+version = "0.2.23"
+description = "Type stubs for Python machine learning libraries"
+category = "dev"
+optional = false
+python-versions = ">=3.6"
+
+[package.extras]
+dev = ["black", "flake8", "flake8-pyi", "matplotlib", "mypy (==0.770)", "numpy", "pandas", "pytest"]
+
+[[package]]
 name = "distlib"
 version = "0.3.4"
 description = "Distribution utilities"
@@ -1127,7 +1138,7 @@ testing = ["coverage (>=4)", "coverage-enable-subprocess (>=1)", "flaky (>=3)", 
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "b75e025698b8eb5657560350dddf3e30af77ded969ab6b1b9305646a2b5d6a0c"
+content-hash = "d1349eb306ca8b770c2c8138893e2daf29f478daa0a9e9e8fd39219eaead28d0"
 
 [metadata.files]
 atomicwrites = [
@@ -1173,6 +1184,10 @@ colorama = [
 cycler = [
     {file = "cycler-0.11.0-py3-none-any.whl", hash = "sha256:3a27e95f763a428a739d2add979fa7494c912a32c17c4c38c4d5f082cad165a3"},
     {file = "cycler-0.11.0.tar.gz", hash = "sha256:9c87405839a19696e837b3b818fed3f5f69f16f1eec1a1ad77e043dcea9c772f"},
+]
+data-science-types = [
+    {file = "data-science-types-0.2.23.tar.gz", hash = "sha256:8096b9a35a8a187bf9a122b4707c97de841d810744690ee2a4ac30c6462e0d16"},
+    {file = "data_science_types-0.2.23-py3-none-any.whl", hash = "sha256:bca319abc0e53a0316f9fcb887937e942477cb9e5fc63c8581e0b0438903b977"},
 ]
 distlib = [
     {file = "distlib-0.3.4-py2.py3-none-any.whl", hash = "sha256:6564fe0a8f51e734df6333d08b8b94d4ea8ee6b99b5ed50613f731fd4089f34b"},

@@ -3,6 +3,7 @@ from multiprocessing import Process
 from time import perf_counter, sleep
 from typing import Any, Callable, Dict, Generator, List, NamedTuple
 
+import matplotlib.pyplot as plt
 import psutil
 
 from botocove.cove_host_account import CoveHostAccount
@@ -73,3 +74,13 @@ def profile_suite(
     if len(suite) == 0:
         raise ValueError("needs at least one function")
     return {fn.__name__: profile_function(fn, profiler=profiler) for fn in suite}
+
+
+def plot(suite: ProfileSuite) -> None:
+    """
+    return matplotlib.lines.Line2D
+    for func_name, profile in suite.items():
+        return plt.plot(*zip(*profile), label=func_name)
+    """
+    plt
+    pass
