@@ -3,8 +3,9 @@ from multiprocessing import Process
 from time import perf_counter, sleep
 from typing import Any, Callable, Dict, Generator, List, NamedTuple
 
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt  # type:ignore
 import psutil
+from matplotlib.lines import Line2D  # type:ignore
 
 from botocove.cove_host_account import CoveHostAccount
 
@@ -76,11 +77,14 @@ def profile_suite(
     return {fn.__name__: profile_function(fn, profiler=profiler) for fn in suite}
 
 
-def plot(suite: ProfileSuite) -> None:
-    """
-    return matplotlib.lines.Line2D
-    for func_name, profile in suite.items():
-        return plt.plot(*zip(*profile), label=func_name)
-    """
-    plt
-    pass
+def plot(suite: ProfileSuite) -> List[Line2D]:  # type:ignore
+
+    if not suite:
+        raise ValueError("needs at least one profile")
+
+    def _yield_lines() -> Generator[Line2D, None, None]:  # type:ignore
+        for profile_name, profile in suite.items():
+            for line in plt.plot(*zip(*profile), label=profile_name):  # type:ignore
+                yield line
+
+    return list(_yield_lines())

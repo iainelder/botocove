@@ -4,31 +4,12 @@ from multiprocessing import Process
 import pytest
 
 from profiling.memory_profiler import (
-    MemoryLog,
     ProcessProfiler,
     Profile,
     profile_function,
     profile_suite,
     run_process_and_log_memory,
 )
-
-
-@pytest.fixture()
-def mock_profile_1() -> Profile:
-    return [
-        MemoryLog(timestamp=0, rss=0),
-        MemoryLog(timestamp=0.25, rss=500),
-        MemoryLog(timestamp=0.5, rss=1000),
-    ]
-
-
-@pytest.fixture()
-def mock_profile_2() -> Profile:
-    return [
-        MemoryLog(timestamp=0, rss=0),
-        MemoryLog(timestamp=0.33, rss=125),
-        MemoryLog(timestamp=0.67, rss=250),
-    ]
 
 
 @pytest.fixture()
