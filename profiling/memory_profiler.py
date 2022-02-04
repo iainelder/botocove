@@ -1,35 +1,10 @@
-from contextlib import contextmanager
 from multiprocessing import Process
 from time import perf_counter, sleep
-from typing import Any, Callable, Dict, Generator, List, NamedTuple
+from typing import Any, Callable, Dict, List, NamedTuple
 
 import matplotlib.pyplot as plt  # type:ignore
 import psutil
 from matplotlib.figure import Figure  # type:ignore
-
-from botocove.cove_host_account import CoveHostAccount
-
-
-@contextmanager
-def allow_duplicate_target_ids() -> Generator[None, None, None]:
-    def allow_duplicates_and_dont_ignore(
-        self: CoveHostAccount, target_ids: List[str]
-    ) -> List[str]:
-        return target_ids
-
-    original_impl = CoveHostAccount._resolve_target_accounts
-
-    # Ignore incompatible callable return types: `Set[str]` and `List[str]`.
-    # In practice they are compatible as sized iterables.
-    # Ignore assigning a callable.
-    CoveHostAccount._resolve_target_accounts = (  # type:ignore
-        allow_duplicates_and_dont_ignore  # type:ignore
-    )
-
-    yield
-
-    # Ignore assigning a callable.
-    CoveHostAccount._resolve_target_accounts = original_impl  # type:ignore
 
 
 class MemoryLog(NamedTuple):

@@ -3,7 +3,7 @@ from typing import List
 import pytest
 
 from botocove.cove_host_account import CoveHostAccount
-from profiling.memory_profiler import allow_duplicate_target_ids
+from profiling.host_patcher import allow_duplicate_target_ids
 
 
 @pytest.fixture()
