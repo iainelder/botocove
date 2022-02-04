@@ -5,7 +5,7 @@ from typing import Any, Callable, Dict, Generator, List, NamedTuple
 
 import matplotlib.pyplot as plt  # type:ignore
 import psutil
-from matplotlib.lines import Line2D  # type:ignore
+from matplotlib.figure import Figure  # type:ignore
 
 from botocove.cove_host_account import CoveHostAccount
 
@@ -77,14 +77,16 @@ def profile_suite(
     return {fn.__name__: profile_function(fn, profiler=profiler) for fn in suite}
 
 
-def plot(suite: ProfileSuite) -> List[Line2D]:  # type:ignore
+def plot(suite: ProfileSuite) -> Figure:  # type:ignore
 
     if not suite:
         raise ValueError("needs at least one profile")
 
-    def _yield_lines() -> Generator[Line2D, None, None]:  # type:ignore
-        for profile_name, profile in suite.items():
-            for line in plt.plot(*zip(*profile), label=profile_name):  # type:ignore
-                yield line
+    figure = plt.figure()
 
-    return list(_yield_lines())
+    for profile_name, profile in suite.items():
+        plt.plot(*zip(*profile), label=profile_name)  # type:ignore
+
+    figure.axes[0].legend()  # type:ignore
+
+    return figure
