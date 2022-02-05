@@ -1,4 +1,4 @@
-import sys
+import argparse
 from typing import Any, Callable, Iterable
 
 from boto3 import Session
@@ -14,24 +14,53 @@ def get_availability_zones(session: Session) -> DescribeAvailabilityZonesResultT
     return ec2.describe_availability_zones()
 
 
+DEFAULT_POOL_SIZES: Iterable[int] = [4, 8, 16, 32]
+
+DEFAULT_ORG_SIZE: int = 100
+
+DEFAULT_TEST_FUNCTION: Callable[..., Any] = get_availability_zones
+
+
 def main() -> None:
 
-    member_account_id, org_size = sys.argv[1:3]
+    args = parse_args()
 
     with allow_duplicate_target_ids():
         compare_performance(
-            member_account_id=member_account_id,
-            org_size=int(org_size),
-            test_function=get_availability_zones,
-            pool_sizes=[4, 8, 16, 32],
+            member_account_id=args.member_account_id,
+            org_size=args.org_size,
+            test_function=DEFAULT_TEST_FUNCTION,
+            pool_sizes=args.pool_sizes,
         )
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Profile botocove")
+    parser.add_argument(
+        "--member-account-id", type=str, help="Real member account to back the fake org"
+    )
+    parser.add_argument(
+        "--org-size",
+        type=int,
+        default=DEFAULT_ORG_SIZE,
+        help="Number of member accounts in fake org",
+    )
+    parser.add_argument(
+        "--pool-sizes",
+        type=int,
+        nargs="*",
+        default=DEFAULT_POOL_SIZES,
+        help="Thread pool sizes to test",
+    )
+    return parser.parse_args()
+
+
 def compare_performance(
+    *,
     member_account_id: str,
-    org_size: int,
-    test_function: Callable[..., Any],
-    pool_sizes: Iterable[int],
+    org_size: int = DEFAULT_ORG_SIZE,
+    test_function: Callable[..., Any] = DEFAULT_TEST_FUNCTION,
+    pool_sizes: Iterable[int] = DEFAULT_POOL_SIZES,
 ) -> None:
     fake_org = [member_account_id] * org_size
 
