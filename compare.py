@@ -1,5 +1,5 @@
 import sys
-from typing import Any
+from typing import Any, Callable, Iterable
 
 from boto3 import Session
 from mypy_boto3_ec2 import EC2Client
@@ -19,21 +19,36 @@ def main() -> None:
     member_account_id, org_size = sys.argv[1:3]
 
     with allow_duplicate_target_ids():
-        compare(member_account_id=member_account_id, org_size=int(org_size))
+        compare_performance(
+            member_account_id=member_account_id,
+            org_size=int(org_size),
+            test_function=get_availability_zones,
+            pool_sizes=[4, 8, 16, 32],
+        )
 
 
-def compare(member_account_id: str, org_size: int) -> None:
+def compare_performance(
+    member_account_id: str,
+    org_size: int,
+    test_function: Callable[..., Any],
+    pool_sizes: Iterable[int],
+) -> None:
     fake_org = [member_account_id] * org_size
 
-    def cove_2() -> Any:
-        nonlocal fake_org
-        return cove(get_availability_zones, target_ids=fake_org, thread_workers=2)()
+    def set_workers(workers: int) -> Callable[..., Any]:
+        nonlocal fake_org, test_function
 
-    def cove_20() -> Any:
-        nonlocal fake_org
-        return cove(get_availability_zones, target_ids=fake_org, thread_workers=20)()
+        def fn() -> Any:
+            return cove(
+                test_function,
+                target_ids=fake_org,
+                thread_workers=workers,
+            )()
 
-    suite = profile(cove_2, cove_20)
+        fn.__name__ = f"cove_with_{workers}_threads"
+        return fn
+
+    suite = profile(*[set_workers(w) for w in pool_sizes])
     figure = plot(suite)
     figure.savefig("plot.png")
 

@@ -6,12 +6,14 @@ from matplotlib.lines import Line2D
 from profiling import plot
 from profiling.profiler import MemoryLog, Profile
 
+# Matplotlib Basic Usage
+# https://matplotlib.org/stable/tutorials/introductory/usage.html#basic-usage
+
 # How can I write unit tests against code that uses matplotlib?
 # Explains the use of get_xydata.
 # https://stackoverflow.com/questions/27948126/how-can-i-write-unit-tests-against-code-that-uses-matplotlib
 
 # Unit Testing Python data visualizations
-# TODO Use plt.gcf().number to check whether plot was really called.
 # https://towardsdatascience.com/unit-testing-python-data-visualizations-18e0250430
 
 
@@ -57,31 +59,40 @@ def test_plotter_plots_all_logs(mock_profile_1: Profile) -> None:
     assert_line_plots_profile(lines[0], mock_profile_1["fn1"])
 
 
-def test_plotter_plots_multiple_profiles(mock_profile_2: Profile) -> None:
+def test_plotter_plots_multiple_keys(mock_profile_2: Profile) -> None:
     figure = plot(mock_profile_2)
     lines = figure.axes[0].get_lines()
     assert_line_plots_profile(lines[0], mock_profile_2["fn1"])
     assert_line_plots_profile(lines[1], mock_profile_2["fn2"])
 
 
-def test_plotter_labels_profile(mock_profile_1: Profile) -> None:
+def test_plotter_labels_line(mock_profile_1: Profile) -> None:
     figure = plot({"fn1": mock_profile_1})
     lines = figure.axes[0].get_lines()
     assert lines[0].get_label() == "fn1"
 
 
-def test_figure_has_legend(mock_profile_1: Profile) -> None:
-    figure = plot({"fn1": mock_profile_1})
-    legend = figure.axes[0].get_legend()
-    assert legend is not None
-
-
-def test_legend_text_is_suite_key(mock_profile_1: Profile) -> None:
+def test_plotter_legend_text_is_profile_key(mock_profile_1: Profile) -> None:
     figure = plot(mock_profile_1)
     legend = figure.axes[0].get_legend()
     texts = legend.get_texts()
     assert len(texts) == 1
     assert texts[0].get_text() == "fn1"
+
+
+def test_plotter_labels_x_axis(mock_profile_1: Profile) -> None:
+    figure = plot(mock_profile_1)
+    assert figure.axes[0].get_xlabel() == "Wall clock time (s)"
+
+
+def test_plotter_labels_y_axis(mock_profile_1: Profile) -> None:
+    figure = plot(mock_profile_1)
+    assert figure.axes[0].get_ylabel() == "Memory (B)"
+
+
+def test_plotter_titles_figure(mock_profile_1: Profile) -> None:
+    figure = plot(mock_profile_1)
+    assert figure._suptitle.get_text() == "Botocove profiling"
 
 
 def test_plotter_fails_for_empty_suite() -> None:
