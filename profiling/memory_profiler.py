@@ -1,6 +1,6 @@
 from multiprocessing import Process
 from time import perf_counter, sleep
-from typing import Any, Callable, Dict, Generator, List, NamedTuple
+from typing import Any, Callable, Dict, Generator, List, NamedTuple, Union
 
 import matplotlib.pyplot as plt  # type:ignore
 import psutil
@@ -16,12 +16,16 @@ Profile = List[MemoryLog]
 
 ProfileSuite = Dict[str, Profile]
 
-Profilable = Callable[[], Any]
+SimpleFunction = Callable[[], Any]
 
-ProcessProfiler = Callable[[Process], Profile]
+Profilable = Union[Process, SimpleFunction]
+
+Profiler = Callable[[Profilable], Profile]
 
 
-def profile(pr: Process) -> Profile:
+def profile(profilable: Profilable) -> Profile:
+
+    proc: Process = _proc(profilable)
 
     # A simplification of watsonic's precise timer.
     # https://stackoverflow.com/a/28034554/111424
@@ -33,28 +37,28 @@ def profile(pr: Process) -> Profile:
 
     logs = []
     t0 = perf_counter()
-    pr.start()
+    proc.start()
     tick = ticker()
 
-    while pr.is_alive():
+    while proc.is_alive():
         ts = perf_counter() - t0
-        rss = psutil.Process(pr.pid).memory_info().rss
+        rss = psutil.Process(proc.pid).memory_info().rss
         logs.append(MemoryLog(timestamp=ts, rss=rss))
         sleep(next(tick))
 
     return logs
 
 
-def profile_function(fn: Profilable, profiler: ProcessProfiler = profile) -> Profile:
-    return profiler(Process(target=fn))
+def _proc(proc_or_callable: Profilable) -> Process:
+    if callable(proc_or_callable):
+        return Process(target=proc_or_callable)
+    return proc_or_callable
 
 
-def profile_suite(
-    *suite: Profilable, profiler: ProcessProfiler = profile
-) -> ProfileSuite:
+def profile_suite(*suite: SimpleFunction, profiler: Profiler = profile) -> ProfileSuite:
     if len(suite) == 0:
         raise ValueError("needs at least one function")
-    return {fn.__name__: profile_function(fn, profiler=profiler) for fn in suite}
+    return {fn.__name__: profiler(fn) for fn in suite}
 
 
 def plot(suite: ProfileSuite) -> Figure:  # type:ignore

@@ -98,6 +98,15 @@ def test_logs_process_decreasing_memory(deallocate_to_zero: Process) -> None:
         assert logs[i].rss > logs[i + 1].rss
 
 
+def test_logs_a_function() -> None:
+    def fn() -> None:
+        return None
+
+    logs = profile(fn)
+
+    assert len(logs) > 0
+
+
 @pytest.mark.slow()
 def test_timer_does_not_drift() -> None:
 
