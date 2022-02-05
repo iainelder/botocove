@@ -1,6 +1,6 @@
 from multiprocessing import Process
 from time import perf_counter, sleep
-from typing import Any, Callable, Dict, Generator, List, NamedTuple, Union
+from typing import Any, Callable, Dict, Generator, List, NamedTuple
 
 import matplotlib.pyplot as plt  # type:ignore
 import psutil
@@ -12,20 +12,19 @@ class MemoryLog(NamedTuple):
     rss: int
 
 
-Profile = List[MemoryLog]
-
-ProfileSuite = Dict[str, Profile]
-
 SimpleFunction = Callable[[], Any]
 
-Profilable = Union[Process, SimpleFunction]
+Profile = Dict[str, List[MemoryLog]]
 
-Profiler = Callable[[Profilable], Profile]
+Profiler = Callable[[SimpleFunction], Profile]
 
 
-def profile(profilable: Profilable) -> Profile:
+def profile(*profilable: SimpleFunction) -> Profile:
 
-    proc: Process = _proc(profilable)
+    if len(profilable) == 0:
+        raise ValueError("needs at least one function")
+
+    proc: Process = Process(target=profilable[0])
 
     # A simplification of watsonic's precise timer.
     # https://stackoverflow.com/a/28034554/111424
@@ -46,22 +45,10 @@ def profile(profilable: Profilable) -> Profile:
         logs.append(MemoryLog(timestamp=ts, rss=rss))
         sleep(next(tick))
 
-    return logs
+    return {profilable[0].__name__: logs}
 
 
-def _proc(proc_or_callable: Profilable) -> Process:
-    if callable(proc_or_callable):
-        return Process(target=proc_or_callable)
-    return proc_or_callable
-
-
-def profile_suite(*suite: SimpleFunction, profiler: Profiler = profile) -> ProfileSuite:
-    if len(suite) == 0:
-        raise ValueError("needs at least one function")
-    return {fn.__name__: profiler(fn) for fn in suite}
-
-
-def plot(suite: ProfileSuite) -> Figure:  # type:ignore
+def plot(suite: Profile) -> Figure:  # type:ignore
 
     if not suite:
         raise ValueError("needs at least one profile")

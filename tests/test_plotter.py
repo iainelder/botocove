@@ -3,7 +3,7 @@
 import pytest
 from matplotlib.lines import Line2D
 
-from profiling.memory_profiler import Profile, plot
+from profiling.memory_profiler import MemoryLog, Profile, plot
 
 # How can I write unit tests against code that uses matplotlib?
 # Explains the use of get_xydata.
@@ -12,6 +12,33 @@ from profiling.memory_profiler import Profile, plot
 # Unit Testing Python data visualizations
 # TODO Use plt.gcf().number to check whether plot was really called.
 # https://towardsdatascience.com/unit-testing-python-data-visualizations-18e0250430
+
+
+@pytest.fixture()
+def mock_profile_1() -> Profile:
+    return {
+        "fn1": [
+            MemoryLog(timestamp=0, rss=0),
+            MemoryLog(timestamp=0.25, rss=500),
+            MemoryLog(timestamp=0.5, rss=1000),
+        ]
+    }
+
+
+@pytest.fixture()
+def mock_profile_2() -> Profile:
+    return {
+        "fn1": [
+            MemoryLog(timestamp=0, rss=0),
+            MemoryLog(timestamp=0.25, rss=500),
+            MemoryLog(timestamp=0.5, rss=1000),
+        ],
+        "fn2": [
+            MemoryLog(timestamp=0, rss=0),
+            MemoryLog(timestamp=0.33, rss=125),
+            MemoryLog(timestamp=0.67, rss=250),
+        ],
+    }
 
 
 def assert_line_plots_profile(line: Line2D, profile: Profile) -> None:
@@ -24,18 +51,16 @@ def assert_line_plots_profile(line: Line2D, profile: Profile) -> None:
 
 
 def test_plotter_plots_all_logs(mock_profile_1: Profile) -> None:
-    figure = plot({"fn1": mock_profile_1})
+    figure = plot(mock_profile_1)
     lines = figure.axes[0].get_lines()
-    assert_line_plots_profile(lines[0], mock_profile_1)
+    assert_line_plots_profile(lines[0], mock_profile_1["fn1"])
 
 
-def test_plotter_plots_multiple_profiles(
-    mock_profile_1: Profile, mock_profile_2: Profile
-) -> None:
-    figure = plot({"fn1": mock_profile_1, "fn2": mock_profile_2})
+def test_plotter_plots_multiple_profiles(mock_profile_2: Profile) -> None:
+    figure = plot(mock_profile_2)
     lines = figure.axes[0].get_lines()
-    assert_line_plots_profile(lines[0], mock_profile_1)
-    assert_line_plots_profile(lines[1], mock_profile_2)
+    assert_line_plots_profile(lines[0], mock_profile_2["fn1"])
+    assert_line_plots_profile(lines[1], mock_profile_2["fn2"])
 
 
 def test_plotter_labels_profile(mock_profile_1: Profile) -> None:
@@ -51,7 +76,7 @@ def test_figure_has_legend(mock_profile_1: Profile) -> None:
 
 
 def test_legend_text_is_suite_key(mock_profile_1: Profile) -> None:
-    figure = plot({"fn1": mock_profile_1})
+    figure = plot(mock_profile_1)
     legend = figure.axes[0].get_legend()
     texts = legend.get_texts()
     assert len(texts) == 1

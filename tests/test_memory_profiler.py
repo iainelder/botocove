@@ -48,18 +48,26 @@ def deallocate_to_zero() -> SideEffect:
     return fn
 
 
+def test_profile_suite_no_args() -> None:
+    with pytest.raises(ValueError, match="needs at least one function"):
+        profile()
+
+
 def test_null_function_has_single_log(null_function: SideEffect) -> None:
-    logs = profile(null_function)
+    pf = profile(null_function)
+    logs = pf[null_function.__name__]
     assert len(logs) == 1
 
 
 def test_first_timestamp_is_zero(null_function: SideEffect) -> None:
-    logs = profile(null_function)
+    pf = profile(null_function)
+    logs = pf[null_function.__name__]
     assert isclose(logs[0].timestamp, 0.0, abs_tol=TIMING_ABSOLUTE_TOLERANCE)
 
 
 def test_process_logs_every_quarter_second(sleep_for_1_sec: SideEffect) -> None:
-    logs = profile(sleep_for_1_sec)
+    pf = profile(sleep_for_1_sec)
+    logs = pf[sleep_for_1_sec.__name__]
 
     expected = [0.0, 0.25, 0.5, 0.75, 1.0]
 
@@ -68,12 +76,14 @@ def test_process_logs_every_quarter_second(sleep_for_1_sec: SideEffect) -> None:
 
 
 def test_stops_logging_when_process_exits(sleep_for_1_sec: SideEffect) -> None:
-    logs = profile(sleep_for_1_sec)
+    pf = profile(sleep_for_1_sec)
+    logs = pf[sleep_for_1_sec.__name__]
     assert len(logs) == 5
 
 
 def test_logs_process_increasing_memory(allocate_for_1_sec: SideEffect) -> None:
-    logs = profile(allocate_for_1_sec)
+    pf = profile(allocate_for_1_sec)
+    logs = pf[allocate_for_1_sec.__name__]
 
     # Don't check the last one. Somtimes the deallocation takes long
     # enough to be logged, and so the last log shows less memory than
@@ -84,7 +94,8 @@ def test_logs_process_increasing_memory(allocate_for_1_sec: SideEffect) -> None:
 
 
 def test_logs_process_decreasing_memory(deallocate_to_zero: SideEffect) -> None:
-    logs = profile(deallocate_to_zero)
+    pf = profile(deallocate_to_zero)
+    logs = pf[deallocate_to_zero.__name__]
 
     # Don't check the first one. I don't know why, but the memory increases
     # at the start of deallocate_to_zero.
@@ -101,7 +112,8 @@ def test_timer_does_not_drift() -> None:
     def sleep_for_1_min() -> None:
         sleep(60)
 
-    logs = profile(sleep_for_1_min)
+    pf = profile(sleep_for_1_min)
+    logs = pf[sleep_for_1_min.__name__]
 
     for log, et in zip(logs, expected):
         assert isclose(log.timestamp, et, abs_tol=TIMING_ABSOLUTE_TOLERANCE)

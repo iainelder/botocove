@@ -7,7 +7,7 @@ from mypy_boto3_ec2.type_defs import DescribeAvailabilityZonesResultTypeDef
 
 from botocove import cove
 from profiling.host_patcher import allow_duplicate_target_ids
-from profiling.memory_profiler import plot, profile_suite
+from profiling.memory_profiler import plot, profile
 
 
 def get_availability_zones(session: Session) -> DescribeAvailabilityZonesResultTypeDef:
@@ -32,7 +32,7 @@ def compare() -> None:
                 get_availability_zones, target_ids=fake_org, thread_workers=20
             )()
 
-        suite = profile_suite(cove_2, cove_20)
+        suite = profile(cove_2, cove_20)
         figure = plot(suite)
         figure.savefig("plot.png")
 
