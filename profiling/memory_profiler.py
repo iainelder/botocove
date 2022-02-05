@@ -1,6 +1,6 @@
 from multiprocessing import Process
 from time import perf_counter, sleep
-from typing import Any, Callable, Dict, List, NamedTuple
+from typing import Any, Callable, Dict, Generator, List, NamedTuple
 
 import matplotlib.pyplot as plt  # type:ignore
 import psutil
@@ -23,16 +23,24 @@ ProcessProfiler = Callable[[Process], Profile]
 
 def run_process_and_log_memory(pr: Process) -> Profile:
 
-    logs = []
+    # A simplification of watsonic's precise timer.
+    # https://stackoverflow.com/a/28034554/111424
+    def ticker() -> Generator[float, None, None]:
+        t = perf_counter()
+        while True:
+            t += 0.25
+            yield t - perf_counter()
 
+    logs = []
     t0 = perf_counter()
     pr.start()
+    tick = ticker()
 
     while pr.is_alive():
         ts = perf_counter() - t0
         rss = psutil.Process(pr.pid).memory_info().rss
         logs.append(MemoryLog(timestamp=ts, rss=rss))
-        sleep(0.25)
+        sleep(next(tick))
 
     return logs
 

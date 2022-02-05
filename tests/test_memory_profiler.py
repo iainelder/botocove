@@ -7,8 +7,6 @@ import pytest
 
 from profiling.memory_profiler import run_process_and_log_memory
 
-pytestmark = pytest.mark.slow
-
 TIMING_ABSOLUTE_TOLERANCE = 0.01
 
 
@@ -100,13 +98,8 @@ def test_logs_process_decreasing_memory(deallocate_to_zero: Process) -> None:
         assert logs[i].rss > logs[i + 1].rss
 
 
-# Read this thread for ideas on how to fix it.
-# The standard library's sched module might be a solution, but it's poorly documented.
-@pytest.mark.xfail(
-    reason="This function doesn't account for how long each loop takes.",
-    strict=True,
-)
-def test_drift() -> None:
+@pytest.mark.slow()
+def test_timer_does_not_drift() -> None:
 
     expected = [ts / 4 for ts in range(0, 1 + 4 * 60)]
     sleep_for_1_min = Process(target=lambda: sleep(60))
