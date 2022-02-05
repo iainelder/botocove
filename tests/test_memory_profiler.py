@@ -104,6 +104,13 @@ def test_logs_process_decreasing_memory(deallocate_to_zero: SideEffect) -> None:
         assert logs[i].rss > logs[i + 1].rss
 
 
+def test_logs_multiple_functions(
+    allocate_for_1_sec: SideEffect, deallocate_to_zero: SideEffect
+) -> None:
+    pf = profile(allocate_for_1_sec, deallocate_to_zero)
+    assert list(pf.keys()) == [allocate_for_1_sec.__name__, deallocate_to_zero.__name__]
+
+
 @pytest.mark.slow()
 def test_timer_does_not_drift() -> None:
 

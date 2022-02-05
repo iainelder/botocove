@@ -24,7 +24,10 @@ def profile(*profilable: SimpleFunction) -> Profile:
     if len(profilable) == 0:
         raise ValueError("needs at least one function")
 
-    proc: Process = Process(target=profilable[0])
+    return {fn.__name__: _profile_process(Process(target=fn)) for fn in profilable}
+
+
+def _profile_process(proc: Process) -> List[MemoryLog]:
 
     # A simplification of watsonic's precise timer.
     # https://stackoverflow.com/a/28034554/111424
@@ -45,7 +48,7 @@ def profile(*profilable: SimpleFunction) -> Profile:
         logs.append(MemoryLog(timestamp=ts, rss=rss))
         sleep(next(tick))
 
-    return {profilable[0].__name__: logs}
+    return logs
 
 
 def plot(suite: Profile) -> Figure:  # type:ignore
