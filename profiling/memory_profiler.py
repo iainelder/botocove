@@ -21,7 +21,7 @@ Profilable = Callable[[], Any]
 ProcessProfiler = Callable[[Process], Profile]
 
 
-def run_process_and_log_memory(pr: Process) -> Profile:
+def profile(pr: Process) -> Profile:
 
     # A simplification of watsonic's precise timer.
     # https://stackoverflow.com/a/28034554/111424
@@ -45,14 +45,12 @@ def run_process_and_log_memory(pr: Process) -> Profile:
     return logs
 
 
-def profile_function(
-    fn: Profilable, profiler: ProcessProfiler = run_process_and_log_memory
-) -> Profile:
+def profile_function(fn: Profilable, profiler: ProcessProfiler = profile) -> Profile:
     return profiler(Process(target=fn))
 
 
 def profile_suite(
-    *suite: Profilable, profiler: ProcessProfiler = run_process_and_log_memory
+    *suite: Profilable, profiler: ProcessProfiler = profile
 ) -> ProfileSuite:
     if len(suite) == 0:
         raise ValueError("needs at least one function")

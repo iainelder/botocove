@@ -6,9 +6,9 @@ import pytest
 from profiling.memory_profiler import (
     ProcessProfiler,
     Profile,
+    profile,
     profile_function,
     profile_suite,
-    run_process_and_log_memory,
 )
 
 
@@ -38,7 +38,7 @@ def test_profile_function_delegates_to_profiler(
 
 def test_profile_function_uses_run_process_by_default() -> None:
     default = inspect.signature(profile_function).parameters["profiler"].default
-    assert default == run_process_and_log_memory
+    assert default == profile
 
 
 def test_profile_suite_no_args() -> None:
@@ -48,7 +48,7 @@ def test_profile_suite_no_args() -> None:
 
 def test_profile_suite_uses_run_process_by_default() -> None:
     default = inspect.signature(profile_suite).parameters["profiler"].default
-    assert default == run_process_and_log_memory
+    assert default == profile
 
 
 def test_profile_suite_one_fn(
