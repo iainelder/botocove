@@ -24,14 +24,13 @@ ProcessProfiler = Callable[[Process], Profile]
 def run_process_and_log_memory(pr: Process) -> Profile:
 
     logs = []
-    memory_info = psutil.Process(pr.pid).memory_info
 
     t0 = perf_counter()
     pr.start()
 
     while pr.is_alive():
         ts = perf_counter() - t0
-        rss = memory_info().rss
+        rss = psutil.Process(pr.pid).memory_info().rss
         logs.append(MemoryLog(timestamp=ts, rss=rss))
         sleep(0.25)
 

@@ -89,7 +89,7 @@ def test_logs_process_increasing_memory(allocate_for_1_sec: Process) -> None:
     # the one before it.
     assert len(logs) > 2
     for i in range(len(logs) - 2):
-        assert logs[i].rss <= logs[i + 1].rss
+        assert logs[i].rss < logs[i + 1].rss
 
 
 def test_logs_process_decreasing_memory(deallocate_to_zero: Process) -> None:
@@ -97,7 +97,7 @@ def test_logs_process_decreasing_memory(deallocate_to_zero: Process) -> None:
 
     assert len(logs) > 1
     for i in range(len(logs) - 1):
-        assert logs[i].rss >= logs[i + 1].rss
+        assert logs[i].rss > logs[i + 1].rss
 
 
 # Read this thread for ideas on how to fix it.
