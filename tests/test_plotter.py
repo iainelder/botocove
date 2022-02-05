@@ -3,7 +3,8 @@
 import pytest
 from matplotlib.lines import Line2D
 
-from profiling.memory_profiler import MemoryLog, Profile, plot
+from profiling import plot
+from profiling.profiler import MemoryLog, Profile
 
 # How can I write unit tests against code that uses matplotlib?
 # Explains the use of get_xydata.

@@ -4,7 +4,7 @@ from typing import Callable, List
 
 import pytest
 
-from profiling.memory_profiler import profile
+from profiling import profile
 
 SideEffect = Callable[[], None]
 

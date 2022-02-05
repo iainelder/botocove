@@ -2,9 +2,7 @@ from multiprocessing import Process
 from time import perf_counter, sleep
 from typing import Any, Callable, Dict, Generator, List, NamedTuple
 
-import matplotlib.pyplot as plt  # type:ignore
 import psutil
-from matplotlib.figure import Figure  # type:ignore
 
 
 class MemoryLog(NamedTuple):
@@ -49,18 +47,3 @@ def _profile_process(proc: Process) -> List[MemoryLog]:
         sleep(next(tick))
 
     return logs
-
-
-def plot(suite: Profile) -> Figure:  # type:ignore
-
-    if not suite:
-        raise ValueError("needs at least one profile")
-
-    figure = plt.figure()
-
-    for profile_name, profile in suite.items():
-        plt.plot(*zip(*profile), label=profile_name)  # type:ignore
-
-    figure.axes[0].legend()  # type:ignore
-
-    return figure
