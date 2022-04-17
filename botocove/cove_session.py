@@ -53,6 +53,7 @@ class CoveSession(Session):
                 self.session_information["Email"] = account_description["Email"]
                 self.session_information["Name"] = account_description["Name"]
                 self.session_information["Status"] = account_description["Status"]
+                self.session_information["OrganizationId"] = "o-1111111111"
             except ClientError:
                 logger.exception(
                     "Failed to call describe_account for "
