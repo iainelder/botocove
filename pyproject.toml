@@ -12,7 +12,7 @@ keywords = ["AWS", "organizations", "AWS organizations", "boto3"]
 python = "^3.8"
 boto3 = "*"
 tqdm = "*"
-boto3-stubs = {extras = ["sts", "organizations"], version = "*"}
+boto3-stubs = {extras = ["sts", "organizations", "ec2"], version = "*"}
 types-tqdm = "*"
 
 [tool.poetry.dev-dependencies]
@@ -34,6 +34,7 @@ pre-commit = "*"
 flakeheaven = "*"
 moto = {extras = ["organizations", "sts"], version = "*"}
 pytest-randomly = "*"
+boto3-stubs = {extras = ["ec2"], version = "*"}
 
 # Hint to the Poetry resolver to resolve boto3 correctly.
 # Otherwise there is a conflict with moto via requests.
