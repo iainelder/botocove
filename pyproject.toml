@@ -12,7 +12,7 @@ keywords = ["AWS", "organizations", "AWS organizations", "boto3"]
 python = "^3.8"
 boto3 = "*"
 tqdm = "*"
-boto3-stubs = {extras = ["sts", "organizations", "ec2"], version = "*"}
+boto3-stubs = {extras = ["organizations", "sqs", "sts"], version = "*"}
 types-tqdm = "*"
 
 [tool.poetry.dev-dependencies]
@@ -32,7 +32,7 @@ flake8-print = "*"
 mypy = "*"
 pre-commit = "*"
 flakeheaven = "*"
-moto = {extras = ["organizations", "sts"], version = "*"}
+moto = {extras = ["organizations", "sqs", "sts"], version = "*"}
 pytest-randomly = "*"
 boto3-stubs = {extras = ["ec2"], version = "*"}
 
