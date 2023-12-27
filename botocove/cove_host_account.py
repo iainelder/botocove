@@ -59,7 +59,11 @@ class CoveHostAccount(object):
         self.host_account_partition = caller_id["Arn"].split(":")[1]
 
         if regions is None:
-            self.target_regions = [None]
+            # FIXME: Now the region key appears even when client doesn't set
+            # `regions`. The `test_when_region_is_unspecified_then_result_has_no_region_key`
+            # doesn't detect it, but it happens in real use. See old notes for
+            # how Moto handles regions.
+            self.target_regions = [assuming_session.region_name]
         else:
             self.target_regions = regions
 
