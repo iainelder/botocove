@@ -30,7 +30,6 @@ def _default_region(monkeypatch: MonkeyPatch) -> None:
     monkeypatch.setenv("AWS_DEFAULT_REGION", "eu-west-1")
 
 
-@pytest.mark.xfail(strict=True, reason="Dodgy region handling in Moto?")
 def test_when_no_assuming_session_and_no_default_region_then_cove_raises_error() -> None:  # noqa: 501
     with pytest.raises(NoRegionError, match=r"^You must specify a region\.$"):
         cove(_query_region, raise_exception=True)()
