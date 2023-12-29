@@ -1,5 +1,4 @@
 import pytest
-from _pytest.monkeypatch import MonkeyPatch
 from boto3.session import Session
 from botocore.exceptions import NoRegionError
 from moto import mock_ec2
@@ -25,22 +24,18 @@ def _org_with_one_member(mock_session: Session) -> None:
     org_client.create_account(Email="account1@aws.com", AccountName="Account 1")
 
 
-@pytest.fixture()
-def _default_region(monkeypatch: MonkeyPatch) -> None:
-    monkeypatch.setenv("AWS_DEFAULT_REGION", "eu-west-1")
-
-
+@pytest.mark.usefixtures("_no_default_region")
 def test_when_no_assuming_session_and_no_default_region_then_cove_raises_error() -> None:  # noqa: 501
     with pytest.raises(NoRegionError, match=r"^You must specify a region\.$"):
         cove(_query_region, raise_exception=True)()
 
 
-@pytest.mark.usefixtures("_default_region")
 def test_when_no_assuming_session_then_cove_uses_default_region() -> None:
     output = cove(_query_region, raise_exception=True)()
     assert output["Results"][0]["Result"] == "eu-west-1"
 
 
+@pytest.mark.usefixtures("_no_default_region")
 def test_when_no_default_region_then_cove_uses_assuming_session_region() -> None:
     output = cove(
         _query_region,
@@ -50,7 +45,6 @@ def test_when_no_default_region_then_cove_uses_assuming_session_region() -> None
     assert output["Results"][0]["Result"] == "eu-central-1"
 
 
-@pytest.mark.usefixtures("_default_region")
 def test_cove_prefers_assuming_session_region() -> None:
     output = cove(
         _query_region,
